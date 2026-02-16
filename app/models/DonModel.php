@@ -41,4 +41,11 @@ class DonModel
         $stmt->execute([ $id_besoin_type, $quantite_don ]);
         return $this->db->lastInsertId();
     }
+
+    public function getAllTypeBesoins(): array
+    {
+        $sql = "SELECT id_besoin, nom_besoin FROM besoin_type_bngrc ORDER BY nom_besoin ASC";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
