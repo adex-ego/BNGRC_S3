@@ -4,41 +4,92 @@
     <meta charset="utf-8">
     <title>BNGRC - Home</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
-    <h1>BNGRC Dashboard</h1>
+    <div class="container py-4">
+        <?php include __DIR__ . '/partials/header.php'; ?>
 
-    <?php if (!empty($ville)): ?>
-        <section>
-            <h2>Ville selectionnee</h2>
-            <p>ID: <?php echo htmlspecialchars((string) $ville['id_ville']); ?></p>
-            <p>Nom: <?php echo htmlspecialchars((string) $ville['nom_ville']); ?></p>
-            <p>Region: <?php echo htmlspecialchars((string) ($ville['id_region'] ?? '')); ?></p>
+        <section class="card shadow-sm">
+            <div class="card-body">
+                <?php
+                    $regions = [];
+                    if (!empty($villes)) {
+                        foreach ($villes as $v) {
+                            $rid = (string) ($v['id_region'] ?? '');
+                            if ($rid !== '') {
+                                $regions[$rid] = $rid;
+                            }
+                        }
+                        ksort($regions);
+                    }
+                ?>
+                <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3">
+                    <h2 class="h5 mb-0">Liste des villes</h2>
+                    <span class="badge bg-primary-subtle text-primary">Total: <?php echo htmlspecialchars((string) count($villes ?? [])); ?></span>
+                </div>
+                <?php if (!empty($villes)): ?>
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="villeSearch">Recherche par nom</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="villeSearch"
+                                placeholder="Ex: Antananarivo"
+                                list="villeSuggestions"
+                            >
+                            <datalist id="villeSuggestions">
+                                <?php foreach ($villes as $v): ?>
+                                    <option value="<?php echo htmlspecialchars((string) $v['nom_ville']); ?>"></option>
+                                <?php endforeach; ?>
+                            </datalist>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="regionFilter">Filtrer par region</label>
+                            <select class="form-select" id="regionFilter">
+                                <option value="">Toutes les regions</option>
+                                <?php foreach ($regions as $rid): ?>
+                                    <option value="<?php echo htmlspecialchars((string) $rid); ?>">Region <?php echo htmlspecialchars((string) $rid); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                <?php endif; ?>
+                <?php if (empty($villes)): ?>
+                    <div class="alert alert-light border mb-0">Aucune ville disponible.</div>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle mb-0" id="villesTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Nom</th>
+                                    <th class="text-end">Besoins</th>
+                                    <th class="text-end">Gérer</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($villes as $v): ?>
+                                    <tr data-nom="<?php echo htmlspecialchars((string) $v['nom_ville']); ?>" data-region="<?php echo htmlspecialchars((string) ($v['id_region'] ?? '')); ?>">
+                                        <td><?php echo htmlspecialchars((string) $v['nom_ville']); ?></td>
+                                        <td class="text-end">
+                                            <a class="btn btn-sm btn-outline-primary" href="/besoins/ville?ville=<?php echo htmlspecialchars((string) $v['id_ville']); ?>">Besoins</a>
+                                        </td>
+                                        <td class="text-end">
+                                            <a class="btn btn-sm btn-primary" href="/villes/id?id=<?php echo htmlspecialchars((string) $v['id_ville']); ?>">Gérer</a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+
+                <?php endif; ?>
+            </div>
         </section>
-    <?php endif; ?>
+    </div>
 
-    <section>
-        <h2>Liste des villes</h2>
-        <?php if (empty($villes)): ?>
-            <p>Aucune ville disponible.</p>
-        <?php else: ?>
-            <ul>
-                <?php foreach ($villes as $v): ?>
-                    <li>
-                        <?php echo htmlspecialchars((string) $v['nom_ville']); ?>
-                        (ID: <?php echo htmlspecialchars((string) $v['id_ville']); ?>)
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        <?php endif; ?>
-    </section>
-
-    <section>
-        <h2>Navigation</h2>
-        <ul>
-            <li><a href="/besoins">Besoins</a></li>
-            <li><a href="/dons">Dons</a></li>
-        </ul>
-    </section>
+    <script src="/assets/js/home.js"></script>
 </body>
 </html>

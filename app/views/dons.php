@@ -12,6 +12,28 @@
         <p>Insertion reussie. ID: <?php echo htmlspecialchars((string) ($insert_id ?? '')); ?></p>
     <?php endif; ?>
 
+    <h2>Ajouter un Don</h2>
+    <form method="POST" action="/dons/create" style="margin-bottom: 30px;">
+        <div>
+            <label for="id_besoin_type">Type de Don:</label>
+            <select id="id_besoin_type" name="id_besoin_type" required>
+                <option value="">-- Sélectionnez un type --</option>
+                <?php if (isset($types_dons) && !empty($types_dons)): ?>
+                    <?php foreach ($types_dons as $type): ?>
+                        <option value="<?php echo htmlspecialchars((string) $type['id_besoin']); ?>">
+                            <?php echo htmlspecialchars((string) $type['nom_besoin']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </select>
+        </div>
+        <div>
+            <label for="quantite_don">Quantité:</label>
+            <input type="number" id="quantite_don" name="quantite_don" min="1" placeholder="Entrez la quantité" required>
+        </div>
+        <button type="submit">Ajouter le Don</button>
+    </form>
+
     <?php if (!empty($don)): ?>
         <section>
             <h2>Don selectionne</h2>

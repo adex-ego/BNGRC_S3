@@ -16,9 +16,13 @@ class BesoinController
         $besoinModel = new BesoinModel($db);
 
         $besoins = $besoinModel->getBesoin();
+        $types_besoins = $besoinModel->getAllTypeBesoins();
+        $villes = $besoinModel->getAllVilles();
 
         Flight::render('besoins', [
-            'besoins' => $besoins
+            'besoins' => $besoins,
+            'types_besoins' => $types_besoins,
+            'villes' => $villes
         ]);
     }
 
@@ -67,6 +71,28 @@ class BesoinController
         ]);
     }
 
+    public function getByVille(): void
+    {
+        $id_ville = Flight::request()->query->ville ?? null;
+
+        if (!$id_ville) {
+            Flight::redirect('/besoins');
+            return;
+        }
+
+        $db = Flight::db();
+        if ($db === null) {
+            Flight::halt(500, 'Database service not configured.');
+        }
+        $besoinModel = new BesoinModel($db);
+
+        $besoins = $besoinModel->findByVille($id_ville);
+
+        Flight::render('besoins', [
+            'besoins' => $besoins
+        ]);
+    }
+
     public function create(): void
     {
         $id_besoin_type = Flight::request()->data->id_besoin_type ?? null;
@@ -90,7 +116,9 @@ class BesoinController
         Flight::render('besoins', [
             'success' => true,
             'insert_id' => $insert_id,
-            'besoins' => $besoinModel->getBesoin()
+            'besoins' => $besoinModel->getBesoin(),
+            'types_besoins' => $besoinModel->getAllTypeBesoins(),
+            'villes' => $besoinModel->getAllVilles()
         ]);
     }
 }
