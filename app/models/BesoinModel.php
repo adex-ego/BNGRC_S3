@@ -52,6 +52,20 @@ class BesoinModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function findByVille($id_ville): array
+    {
+        $sql = "SELECT bv.id_besoin, bv.id_besoin_type, bt.nom_besoin, bv.quantite_besoin, bv.id_ville, v.nom_ville, v.id_region, r.nom_region, bv.date_demande
+                FROM besoin_ville_bngrc bv
+                JOIN besoin_type_bngrc bt ON bt.id_besoin = bv.id_besoin_type
+                LEFT JOIN ville_bngrc v ON v.id_ville = bv.id_ville
+                LEFT JOIN region_bngrc r ON r.id_region = v.id_region
+                WHERE bv.id_ville = ?
+                ORDER BY bv.date_demande DESC, bv.id_besoin DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([ $id_ville ]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function insertBesoin($id_besoin_type, $quantite_besoin, $id_ville, $date_demande)
     {
         $sql = "INSERT INTO besoin_ville_bngrc (id_besoin_type, quantite_besoin, id_ville, date_demande) VALUES (?, ?, ?, ?)";
