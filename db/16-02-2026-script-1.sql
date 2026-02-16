@@ -42,3 +42,4 @@ CREATE TABLE dons_bngrc(
     quantite_don INT NOT NULL,
     FOREIGN KEY (id_besoin_type) REFERENCES besoin_type_bngrc(id_besoin)
 );
+
