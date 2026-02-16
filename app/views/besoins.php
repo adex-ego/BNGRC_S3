@@ -23,15 +23,28 @@
                 <?php endif; ?>
 
                 <h3 class="h6 text-uppercase text-primary mb-3">Ajouter un Besoin</h3>
-                <form method="POST" action="/besoins/create" class="row g-3 mb-4">
+                <form method="POST" action="/besoins" class="row g-3 mb-4">
                     <div class="col-12 col-md-6">
-                        <label class="form-label" for="id_besoin_type">Type de Besoin</label>
-                        <select class="form-select" id="id_besoin_type" name="id_besoin_type" required>
+                        <label class="form-label" for="id_besoin_type">Type</label>
+                        <select class="form-select" id="id_besoin_type" name="id_besoin_type">
                             <option value="">-- Sélectionnez un type --</option>
                             <?php if (isset($types_besoins) && !empty($types_besoins)): ?>
                                 <?php foreach ($types_besoins as $type): ?>
-                                    <option value="<?php echo htmlspecialchars((string) $type['id_besoin']); ?>">
-                                        <?php echo htmlspecialchars((string) $type['nom_besoin']); ?>
+                                    <option value="<?php echo htmlspecialchars((string) $type['id_type']); ?>">
+                                        <?php echo htmlspecialchars((string) $type['nom_type']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="id_besoin_item">Besoin</label>
+                        <select class="form-select" id="id_besoin_item" name="id_besoin_item" required>
+                            <option value="">-- Sélectionnez un besoin --</option>
+                            <?php if (isset($items_besoins) && !empty($items_besoins)): ?>
+                                <?php foreach ($items_besoins as $item): ?>
+                                    <option value="<?php echo htmlspecialchars((string) $item['id_besoin']); ?>" data-type-id="<?php echo htmlspecialchars((string) $item['id_type']); ?>">
+                                        <?php echo htmlspecialchars((string) $item['nom_besoin']); ?> (<?php echo htmlspecialchars((string) $item['nom_type']); ?>)
                                     </option>
                                 <?php endforeach; ?>
                             <?php endif; ?>
@@ -67,8 +80,8 @@
                     <div class="alert alert-light border mb-4">
                         <h3 class="h6 text-uppercase text-primary">Besoin selectionne</h3>
                         <div class="row g-2">
-                            <div class="col-12 col-md-4">ID: <?php echo htmlspecialchars((string) $besoin['id_besoin']); ?></div>
-                            <div class="col-12 col-md-4">Type: <?php echo htmlspecialchars((string) ($besoin['nom_besoin'] ?? '')); ?></div>
+                            <div class="col-12 col-md-4">Besoin: <?php echo htmlspecialchars((string) ($besoin['nom_besoin'] ?? '')); ?></div>
+                            <div class="col-12 col-md-4">Type: <?php echo htmlspecialchars((string) ($besoin['nom_type'] ?? '')); ?></div>
                             <div class="col-12 col-md-4">Quantite: <?php echo htmlspecialchars((string) $besoin['quantite_besoin']); ?></div>
                             <div class="col-12 col-md-6">Ville: <?php echo htmlspecialchars((string) ($besoin['nom_ville'] ?? '')); ?></div>
                             <div class="col-12 col-md-6">Date: <?php echo htmlspecialchars((string) $besoin['date_demande']); ?></div>
@@ -83,7 +96,7 @@
                         <table class="table table-striped align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
+                                    <th>Besoin</th>
                                     <th>Type</th>
                                     <th class="text-end">Quantite</th>
                                     <th>Ville</th>
@@ -93,8 +106,8 @@
                             <tbody>
                                 <?php foreach ($besoins as $b): ?>
                                     <tr>
-                                        <td><?php echo htmlspecialchars((string) $b['id_besoin']); ?></td>
                                         <td><?php echo htmlspecialchars((string) ($b['nom_besoin'] ?? '')); ?></td>
+                                        <td><?php echo htmlspecialchars((string) ($b['nom_type'] ?? '')); ?></td>
                                         <td class="text-end"><?php echo htmlspecialchars((string) $b['quantite_besoin']); ?></td>
                                         <td><?php echo htmlspecialchars((string) ($b['nom_ville'] ?? '')); ?></td>
                                         <td><?php echo htmlspecialchars((string) $b['date_demande']); ?></td>
@@ -107,5 +120,43 @@
             </div>
         </section>
     </div>
+
+    <script>
+        const typeSelect = document.getElementById('id_besoin_type');
+        const itemSelect = document.getElementById('id_besoin_item');
+
+        const filterItems = () => {
+            if (!itemSelect) {
+                return;
+            }
+            const selectedType = typeSelect ? typeSelect.value : '';
+            const options = Array.from(itemSelect.options);
+            let hasVisible = false;
+
+            options.forEach((option, index) => {
+                if (index === 0) {
+                    option.hidden = false;
+                    option.disabled = false;
+                    return;
+                }
+                const typeId = option.getAttribute('data-type-id');
+                const visible = !selectedType || typeId === selectedType;
+                option.hidden = !visible;
+                option.disabled = !visible;
+                if (visible) {
+                    hasVisible = true;
+                }
+            });
+
+            if (!hasVisible || (itemSelect.selectedOptions[0] && itemSelect.selectedOptions[0].hidden)) {
+                itemSelect.value = '';
+            }
+        };
+
+        if (typeSelect) {
+            typeSelect.addEventListener('change', filterItems);
+            filterItems();
+        }
+    </script>
 </body>
 </html>
