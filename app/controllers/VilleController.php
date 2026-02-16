@@ -36,12 +36,21 @@ class VilleController
         }
         $villeModel = new VilleModel($db);
 
-        $ville = $villeModel->findVilleById($id_ville);
-        $villes = $villeModel->getAllVille();
+        $ville = $villeModel->findVilleWithRegionById($id_ville);
 
-        Flight::render('home', [
+        $besoinModel = new \app\models\BesoinModel($db);
+        $besoins = $besoinModel->findByVille($id_ville);
+        $totalBesoins = count($besoins);
+        $totalQuantite = 0;
+        foreach ($besoins as $b) {
+            $totalQuantite += (int) ($b['quantite_besoin'] ?? 0);
+        }
+
+        Flight::render('ville', [
             'ville' => $ville,
-            'villes' => $villes
+            'besoins' => $besoins,
+            'totalBesoins' => $totalBesoins,
+            'totalQuantite' => $totalQuantite
         ]);
     }
 
