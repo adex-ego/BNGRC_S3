@@ -9,10 +9,13 @@ class VilleController
 {
     public function index()
     {
-        $db = Flight::get('db');
+        $db = Flight::db();
+        if ($db === null) {
+            Flight::halt(500, 'Database service not configured.');
+        }
         $villeModel = new VilleModel($db);
 
-        $villes = $villeModel->getallville();
+        $villes = $villeModel->getAllVille();
 
         Flight::render('home', [
             'villes' => $villes
@@ -21,13 +24,24 @@ class VilleController
 
     public function getById($id_ville)
     {
-        $db = Flight::get('db');
+        $id_ville = $id_ville ?? (Flight::request()->query->id ?? null);
+        if (!$id_ville) {
+            Flight::redirect('/home');
+            return;
+        }
+
+        $db = Flight::db();
+        if ($db === null) {
+            Flight::halt(500, 'Database service not configured.');
+        }
         $villeModel = new VilleModel($db);
 
-        $ville = $villeModel->findvillebyid($id_ville);
+        $ville = $villeModel->findVilleById($id_ville);
+        $villes = $villeModel->getAllVille();
 
         Flight::render('home', [
-            'ville' => $ville
+            'ville' => $ville,
+            'villes' => $villes
         ]);
     }
 
@@ -40,13 +54,18 @@ class VilleController
             return;
         }
 
-        $db = Flight::get('db');
+        $db = Flight::db();
+        if ($db === null) {
+            Flight::halt(500, 'Database service not configured.');
+        }
         $villeModel = new VilleModel($db);
 
-        $ville = $villeModel->findvillebyname($nom_ville);
+        $ville = $villeModel->findVilleByName($nom_ville);
+        $villes = $villeModel->getAllVille();
 
         Flight::render('home', [
-            'ville' => $ville
+            'ville' => $ville,
+            'villes' => $villes
         ]);
     }
 
@@ -60,10 +79,13 @@ class VilleController
             return;
         }
 
-        $db = Flight::get('db');
+        $db = Flight::db();
+        if ($db === null) {
+            Flight::halt(500, 'Database service not configured.');
+        }
         $villeModel = new VilleModel($db);
 
-        $insert_id = $villeModel->insertville($nom_ville, $id_region);
+        $insert_id = $villeModel->insertVille($nom_ville, $id_region);
 
         if ($insert_id) {
             Flight::json(['success' => true, 'id' => $insert_id], 201);
