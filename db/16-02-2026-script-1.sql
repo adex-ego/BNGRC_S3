@@ -31,6 +31,14 @@ CREATE TABLE besoin_ville_bngrc(
     id_besoin_type INT,
     quantite_besoin INT NOT NULL,
     id_ville INT,
+    date_demande DATE NOT NULL,
     FOREIGN KEY (id_besoin_type) REFERENCES besoin_type_bngrc(id_besoin),
     FOREIGN KEY (id_ville) REFERENCES ville_bngrc(id_ville)
+);
+
+CREATE TABLE dons_bngrc(
+    id_don INT PRIMARY KEY AUTO_INCREMENT,
+    id_besoin_type INT,
+    quantite_don INT NOT NULL,
+    FOREIGN KEY (id_besoin_type) REFERENCES besoin_type_bngrc(id_besoin)
 );
