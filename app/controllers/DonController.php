@@ -16,9 +16,11 @@ class DonController
         $donModel = new DonModel($db);
 
         $dons = $donModel->getDon();
+        $types_dons = $donModel->getAllTypeBesoins();
 
         Flight::render('dons', [
-            'dons' => $dons
+            'dons' => $dons,
+            'types_dons' => $types_dons
         ]);
     }
 
@@ -66,7 +68,8 @@ class DonController
         Flight::render('dons', [
             'success' => true,
             'insert_id' => $insert_id,
-            'dons' => $donModel->getDon()
+            'dons' => $donModel->getDon(),
+            'types_dons' => $donModel->getAllTypeBesoins()
         ]);
     }
 }

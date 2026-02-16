@@ -16,9 +16,13 @@ class BesoinController
         $besoinModel = new BesoinModel($db);
 
         $besoins = $besoinModel->getBesoin();
+        $types_besoins = $besoinModel->getAllTypeBesoins();
+        $villes = $besoinModel->getAllVilles();
 
         Flight::render('besoins', [
-            'besoins' => $besoins
+            'besoins' => $besoins,
+            'types_besoins' => $types_besoins,
+            'villes' => $villes
         ]);
     }
 
@@ -112,7 +116,9 @@ class BesoinController
         Flight::render('besoins', [
             'success' => true,
             'insert_id' => $insert_id,
-            'besoins' => $besoinModel->getBesoin()
+            'besoins' => $besoinModel->getBesoin(),
+            'types_besoins' => $besoinModel->getAllTypeBesoins(),
+            'villes' => $besoinModel->getAllVilles()
         ]);
     }
 }
