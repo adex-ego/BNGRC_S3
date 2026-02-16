@@ -67,7 +67,7 @@ return [
 	 **************************************/
 	'database' => [
     'host'     => '127.0.0.1',
-    'dbname'   => 'takalo',
+    'dbname'   => 'db_s2_ETU003894',
     'user'     => 'root',
     'password' => '',
     ],
