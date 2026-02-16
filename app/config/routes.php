@@ -4,6 +4,7 @@ use app\controllers\BesoinController;
 use app\controllers\DonController;
 use app\controllers\AuthController;
 use app\controllers\VilleController;
+use app\controllers\AchatController;
 use app\middlewares\AuthMiddleware;
 use app\middlewares\SecurityHeadersMiddleware;
 use flight\Engine;
@@ -51,5 +52,13 @@ $router->group('', function(Router $router) use ($app) {
         $router->get('/dons', [ DonController::class, 'index' ]);
         $router->get('/dons/id', [ DonController::class, 'getById' ]);
         $router->post('/dons', [ DonController::class, 'create' ]);
+
+        $router->get('/achats', [ AchatController::class, 'index' ]);
+        $router->post('/achats/simulate', [ AchatController::class, 'simulate' ]);
+        $router->post('/achats/validate', [ AchatController::class, 'validate' ]);
+        $router->get('/simulation', [ AchatController::class, 'showSimulation' ]);
+        $router->post('/achats/delete-simulation', [ AchatController::class, 'deleteSimulation' ]);
+        $router->get('/recapitulatif', [ AchatController::class, 'showRecap' ]);
+        $router->get('/api/recap', [ AchatController::class, 'recap' ]);
     }, [ AuthMiddleware::class ]);
 }, [ SecurityHeadersMiddleware::class ]);
