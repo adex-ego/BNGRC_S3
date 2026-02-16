@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\models\RegionModel;
 use app\models\VilleModel;
 use Flight;
 
@@ -11,11 +12,14 @@ class VilleController
     {
         $db = Flight::get('db');
         $villeModel = new VilleModel($db);
+        $regionModel = new RegionModel($db);
         
         $villes = $villeModel->getAllVille();
+        $regions = $regionModel->getAllRegion();
         
         Flight::render('home', [
-            'villes' => $villes
+            'villes' => $villes,
+            'regions' => $regions,
         ]);
     }
 
@@ -30,12 +34,14 @@ class VilleController
         
         $db = Flight::get('db');
         $villeModel = new VilleModel($db);
+        $regionModel = new RegionModel($db);
         
         $ville = $villeModel->findVilleById($id_ville);
         
         Flight::render('home', [
             'ville' => $ville,
-            'villes' => $villeModel->getAllVille()
+            'villes' => $villeModel->getAllVille(),
+            'regions' => $regionModel->getAllRegion(),
         ]);
     }
 
@@ -50,12 +56,14 @@ class VilleController
         
         $db = Flight::get('db');
         $villeModel = new VilleModel($db);
+        $regionModel = new RegionModel($db);
         
         $ville = $villeModel->findVilleByName($nom_ville);
         
         Flight::render('home', [
             'ville' => $ville,
-            'villes' => $villeModel->getAllVille()
+            'villes' => $villeModel->getAllVille(),
+            'regions' => $regionModel->getAllRegion(),
         ]);
     }
 
@@ -71,13 +79,15 @@ class VilleController
         
         $db = Flight::get('db');
         $villeModel = new VilleModel($db);
+        $regionModel = new RegionModel($db);
         
         $insert_id = $villeModel->insertVille($nom_ville, $id_region);
         
         Flight::render('home', [
             'success' => true,
             'insert_id' => $insert_id,
-            'villes' => $villeModel->getAllVille()
+            'villes' => $villeModel->getAllVille(),
+            'regions' => $regionModel->getAllRegion(),
         ]);
     }
 }
