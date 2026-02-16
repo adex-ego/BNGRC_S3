@@ -31,10 +31,12 @@ $router->group('', function(Router $router) use ($app) {
     });
 
     $router->get('/home', [ VilleController::class, 'index' ]);
+    $router->get('/villes/id', [ VilleController::class, 'getById' ]);
 
     $router->get('/besoins', [ BesoinController::class, 'index' ]);
     $router->get('/besoins/id', [ BesoinController::class, 'getById' ]);
     $router->get('/besoins/type', [ BesoinController::class, 'getByType' ]);
+    $router->get('/besoins/ville', [ BesoinController::class, 'getByVille' ]);
     $router->post('/besoins', [ BesoinController::class, 'create' ]);
 
     $router->get('/dons', [ DonController::class, 'index' ]);
