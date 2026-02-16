@@ -59,4 +59,18 @@ class BesoinModel
         $stmt->execute([ $id_besoin_type, $quantite_besoin, $id_ville, $date_demande ]);
         return $this->db->lastInsertId();
     }
+
+    public function getAllTypeBesoins(): array
+    {
+        $sql = "SELECT id_besoin, nom_besoin FROM besoin_type_bngrc ORDER BY nom_besoin ASC";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getAllVilles(): array
+    {
+        $sql = "SELECT id_ville, nom_ville FROM ville_bngrc ORDER BY nom_ville ASC";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
