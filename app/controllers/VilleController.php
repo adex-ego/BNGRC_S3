@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\models\BesoinModel;
 use app\models\VilleModel;
 use Flight;
 
@@ -16,13 +17,19 @@ class VilleController
         $villeModel = new VilleModel($db);
 
         $villes = $villeModel->getAllVille();
+        $besoinModel = new BesoinModel($db);
+        $besoinCounts = [];
+        foreach ($besoinModel->getBesoinCountsByVille() as $row) {
+            $besoinCounts[(string) ($row['id_ville'] ?? '')] = (int) ($row['total_besoins'] ?? 0);
+        }
 
         Flight::render('home', [
-            'villes' => $villes
+            'villes' => $villes,
+            'besoinCounts' => $besoinCounts
         ]);
     }
 
-    public function getById($id_ville)
+    public function getById($id_ville = null)
     {
         $id_ville = $id_ville ?? (Flight::request()->query->id ?? null);
         if (!$id_ville) {
@@ -71,10 +78,16 @@ class VilleController
 
         $ville = $villeModel->findVilleByName($nom_ville);
         $villes = $villeModel->getAllVille();
+        $besoinModel = new BesoinModel($db);
+        $besoinCounts = [];
+        foreach ($besoinModel->getBesoinCountsByVille() as $row) {
+            $besoinCounts[(string) ($row['id_ville'] ?? '')] = (int) ($row['total_besoins'] ?? 0);
+        }
 
         Flight::render('home', [
             'ville' => $ville,
-            'villes' => $villes
+            'villes' => $villes,
+            'besoinCounts' => $besoinCounts
         ]);
     }
 
