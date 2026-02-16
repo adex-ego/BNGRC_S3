@@ -32,11 +32,11 @@ $router->group('', function(Router $router) use ($app) {
         $app->redirect('/home');
     });
 
-    $router->get('/login', [ AuthController::class, 'showLogin' ]);
-    $router->post('/login', [ AuthController::class, 'login' ]);
-    $router->get('/register', [ AuthController::class, 'showRegister' ]);
-    $router->post('/register', [ AuthController::class, 'register' ]);
-    $router->get('/logout', [ AuthController::class, 'logout' ]);
+    // $router->get('/login', [ AuthController::class, 'showLogin' ]);
+    // $router->post('/login', [ AuthController::class, 'login' ]);
+    // $router->get('/register', [ AuthController::class, 'showRegister' ]);
+    // $router->post('/register', [ AuthController::class, 'register' ]);
+    // $router->get('/logout', [ AuthController::class, 'logout' ]);
 
     $router->group('', function(Router $router) {
         $router->get('/home', [ VilleController::class, 'index' ]);
