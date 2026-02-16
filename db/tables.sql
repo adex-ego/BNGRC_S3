@@ -16,6 +16,6 @@ CREATE TABLE besoin_bngrc(
 CREATE TABLE ville_bngrc(
     id_ville INT PRIMARY KEY AUTO_INCREMENT,
     id_besoin_type INT,
-    nom_ville VARCHAR(255) NOT NULL
+    nom_ville VARCHAR(255) NOT NULL,
     FOREIGN KEY (id_besoin_type) REFERENCES besoin_type_bngrc(id_besoin)
 );
