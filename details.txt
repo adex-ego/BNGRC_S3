@@ -1,0 +1,396 @@
+================================================================================
+                    SYSTÈME ACHATS - BNGRC S3
+                         Détails Complets
+================================================================================
+
+📋 RÉSUMÉ DU SYSTÈME
+================================================================================
+
+1. ✅ Achats via dons en argent
+   - Les dons en argent servent à acheter des besoins (En Nature, Matériaux)
+   - Chaque besoin a un prix unitaire
+   - Exemple: 10 kg de riz à 5 Ar/kg = 50 Ar total
+   - Frais d'achat: 10% configurables → 50 Ar + 5 Ar (frais) = 55 Ar TTC
+   - ⚠️ Erreur si: pas assez de dons disponibles
+
+2. ✅ Workflow d'achat:
+   📄 Page /achats → Voir les besoins → Simuler un achat
+   📄 Page /simulation → Vérifier les simulations → Valider ou supprimer
+   📄 Page /recapitulatif → Voir les stats en temps réel
+
+
+================================================================================
+📦 MODÈLES (app/models/)
+================================================================================
+
+✅ AchatModel.php
+   Classe: AchatModel
+   Injection: PDO $db
+
+   FONCTIONS:
+
+   1. getBesoinsRestants(): array
+      - Récupère TOUS les besoins non satisfaits
+      - Filtre: t.id_type IN (1, 2) → "En Nature" et "Matériaux" seulement
+      - Retour: Array de besoins avec:
+        * id_besoin, id_besoin_item, nom_besoin, prix_besoin
+        * nom_type, quantite_besoin, id_ville, nom_ville
+        * nom_region, date_demande, montant_total (quantite × prix)
+
+   2. getBesoinsRestantsByVille($id_ville): array
+      - Récupère besoins filtrés par ville
+      - Paramètre: $id_ville (INT)
+      - Même structure que getBesoinsRestants()
+
+   3. getAvailableMoney(): array
+      - Liste TOUS les dons en argent disponibles
+      - Retour: Array de dons avec:
+        * id_don, montant, date_don, statut
+
+   4. getTotalAvailableMoney(): float
+      - Somme de TOUS les dons en argent
+      - Retour: Total en Ar
+
+   5. getFraisAchat(): float
+      - Récupère le pourcentage de frais depuis config_bngrc
+      - Défaut: 10%
+      - Retour: Pourcentage (ex: 10.0)
+
+   6. createAchatSimulation($id_besoin_ville, $quantite, $prix_unitaire, $frais_percent): array
+      - CRÉE une simulation (pas d'enregistrement en BD)
+      - Paramètres:
+        * $id_besoin_ville: ID du besoin à acheter
+        * $quantite: Quantité à acheter
+        * $prix_unitaire: Prix par unité
+        * $frais_percent: % de frais
+      - Retour: Array avec:
+        * id_achat, id_besoin_ville, quantite_achetee, prix_unitaire
+        * frais_achat_percent, montant_total, statut='simule'
+      - ⚠️ Enregistre en BD avec statut='simule'
+
+   7. validateAchat($id_achat): bool
+      - Convertit une simulation en achat validé
+      - Change statut: 'simule' → 'valide'
+      - Paramètre: $id_achat (INT)
+      - Retour: true/false (succès)
+
+   8. getAchatsSimules(): array
+      - Récupère TOUS les achats en cours de simulation
+      - Retour: Array avec détails de chaque simulation
+
+   9. getAchatsValides(): array
+      - Récupère TOUS les achats validés (confirmés)
+      - Retour: Array avec détails de chaque achat validé
+
+   10. getRecapitulatif(): array
+       - Calcule les statistiques principales
+       - Retour: Array avec:
+         * total_besoins: Somme de tous les besoins (quantite × prix)
+         * besoins_satisfaits: Somme de tous les achats validés
+         * besoins_restants: total_besoins - besoins_satisfaits
+
+   11. getAchatSimulation($id_achat): array|null
+       - Récupère UNE simulation par ID
+       - Paramètre: $id_achat (INT)
+       - Retour: Détails ou null si non trouvé
+
+   12. deleteAchatSimulation($id_achat): bool
+       - Supprime une simulation
+       - Paramètre: $id_achat (INT)
+       - Retour: true/false
+
+
+================================================================================
+🎮 CONTRÔLEURS (app/controllers/)
+================================================================================
+
+✅ AchatController.php
+   Classe: AchatController
+   Injection: AchatModel $achatModel, ..autres models..
+
+   ACTIONS (Fonctions):
+
+   1. index()
+      - Affiche la page /achats
+      - Récupère:
+        * Tous les besoins restants → $besoins
+        * Toutes les villes → $villes
+        * Total argent disponible → $montant_disponible
+      - Rendu: achats.php avec ces données
+
+   2. simulate() [POST /achats/simulate] - AJAX
+      - Crée une simulation d'achat
+      - Paramètres POST:
+        * id_besoin_ville: ID du besoin sélectionné
+        * quantite: Quantité à acheter
+      - Vérifie:
+        * L'argent disponible est suffisant
+        * La quantité est valide
+      - Actions:
+        * Appelle createAchatSimulation()
+        * Retourne JSON: {id_achat: X} ou {error: "message"}
+      - Retour: JSON
+
+   3. validate() [POST /achats/validate] - AJAX
+      - Valide une simulation
+      - Paramètres POST:
+        * id_achat: ID de la simulation à valider
+      - Actions:
+        * Appelle validateAchat()
+        * Enregistre le lien don ↔ achat
+      - Retour: JSON {success: true} ou {error: "message"}
+
+   4. showSimulation()
+      - Affiche la page /simulation
+      - Récupère:
+        * Toutes les simulations en cours → $achats_simules
+        * Total argent disponible → $montant_dispo
+      - Rendu: simulation.php avec ces données
+
+   5. deleteSimulation() [POST /achats/delete-simulation] - AJAX
+      - Supprime une simulation
+      - Paramètres POST:
+        * id_achat: ID de la simulation à supprimer
+      - Actions:
+        * Appelle deleteAchatSimulation()
+      - Retour: JSON {success: true} ou {error: "message"}
+
+   6. showRecap()
+      - Affiche la page /recapitulatif
+      - Récupère:
+        * Statistiques générales → $recap
+        * Tous les achats validés → $achats_valides
+      - Rendu: recapitulatif.php avec ces données
+
+   7. recap() [GET /api/recap] - AJAX JSON
+      - Retourne les statistiques en JSON
+      - Paramètres: Aucun
+      - Récupère:
+        * getRecapitulatif() → {total_besoins, besoins_satisfaits, besoins_restants}
+      - Retour: JSON pour actualisation AJAX
+
+
+================================================================================
+📄 VUES (app/views/)
+================================================================================
+
+✅ achats.php (/achats)
+   Structure:
+   - Bootstrap HTML + header.php
+   - Filtrage par ville (dropdown)
+   - Table avec besoins disponibles:
+     • Nom besoin, Type, Quantité, Prix/U, Total, Ville, Date, Bouton Acheter
+   - Formulaire d'achat:
+     • Input quantité
+     • Aperçu montant HT + frais + TTC
+     • Bouton "Simuler l'Achat"
+   
+   Comportement JavaScript:
+   - Filtre par ville masque les lignes non correspondantes
+   - Clic "Acheter" → sélectionne le besoin + affiche aperçu
+   - Input quantité → calcule le total en temps réel
+   - Submit formulaire → POST /achats/simulate via AJAX
+   - Succès → Redirect vers /simulation
+
+✅ simulation.php (/simulation)
+   Structure:
+   - Bootstrap HTML + header.php
+   - Affiche montant disponible
+   - Table des simulations en cours:
+     • ID, Besoin, Qté, Prix/U, Montant HT, Frais, Total, Actions
+   - Boutons par simulation:
+     • ✓ Valider (POST /achats/validate)
+     • ✕ Supprimer (POST /achats/delete-simulation)
+   - Affiche total des simulations
+   - Lien retour vers /achats
+   
+   Comportement JavaScript:
+   - Valider → Confirmation → POST validate → reload
+   - Supprimer → Confirmation → POST delete → reload
+   - Page vide si aucune simulation
+
+✅ recapitulatif.php (/recapitulatif)
+   Structure:
+   - Bootstrap HTML + header.php
+   - 3 cartes statistiques:
+     • Total des besoins (Ar)
+     • Besoins satisfaits (Ar)
+     • Besoins restants (Ar)
+   - Table des achats validés:
+     • ID, Besoin, Qté, Prix/U, Montant HT, Frais, Total, Date, Statut
+   - Bouton "Actualiser" → AJAX GET /api/recap → refresh stats sans reload
+   - Liens retour vers /achats et /home
+   
+   Comportement JavaScript:
+   - Au chargement: fetch /api/recap → remplir les stats
+   - Clic Actualiser: fetch /api/recap → update des stats
+
+
+================================================================================
+🛣️ ROUTES (app/config/routes.php)
+================================================================================
+
+Ajoutées:
+
+GET  /achats                     → AchatController::index
+POST /achats/simulate            → AchatController::simulate
+POST /achats/validate            → AchatController::validate
+GET  /simulation                 → AchatController::showSimulation
+POST /achats/delete-simulation   → AchatController::deleteSimulation
+GET  /recapitulatif              → AchatController::showRecap
+GET  /api/recap                  → AchatController::recap
+
+Toutes les routes sont protégées par AuthMiddleware (login requis)
+
+
+================================================================================
+💾 BASE DE DONNÉES
+================================================================================
+
+Tables utilisées:
+
+1. besoin_bngrc
+   - id_besoin (PK)
+   - id_type (FK → besoin_type_bngrc)
+   - nom_besoin
+   - prix_besoin
+
+2. besoin_ville_bngrc
+   - id_besoin (PK)
+   - id_besoin_item (FK → besoin_bngrc.id_besoin)
+   - quantite_besoin
+   - id_ville (FK → ville_bngrc)
+   - date_demande
+
+3. dons_bngrc
+   - id_don (PK)
+   - id_besoin_item (FK)
+   - quantite_don (montant en Ar)
+
+4. besoin_type_bngrc
+   - id_type (PK)
+   - nom_type (Ex: "En Nature", "Matériaux", "Argent")
+
+5. ville_bngrc
+   - id_ville (PK)
+   - id_region (FK)
+   - nom_ville
+
+6. achats_bngrc [NOUVELLE]
+   - id_achat (PK)
+   - id_besoin_ville (FK → besoin_ville_bngrc)
+   - quantite_achetee
+   - prix_unitaire
+   - frais_achat_percent
+   - montant_total
+   - date_achat
+   - statut ('simule' ou 'valide')
+
+7. dons_utilises_bngrc [NOUVELLE]
+   - id_don_utilise (PK)
+   - id_achat (FK → achats_bngrc)
+   - id_don (FK → dons_bngrc)
+   - montant_utilise
+
+
+================================================================================
+📋 CHECKLIST - TÂCHES ACHATS
+================================================================================
+
+BACKEND:
+✅ AchatModel.php créé avec 12 fonctions
+✅ AchatController.php créé avec 7 actions
+✅ Routes créées (7 routes)
+✅ Intégration avec header.php
+
+FRONTEND:
+✅ achats.php créée (sélection + simulation)
+✅ simulation.php créée (révision + validation)
+✅ recapitulatif.php créée (statistiques)
+✅ Navigation mise à jour
+
+TESTS MANUELS À FAIRE:
+[ ] Accéder à /achats → voir les besoins
+[ ] Filtrer par ville → vérifier le filtrage
+[ ] Simuler un achat → vérifier la création
+[ ] Accéder à /simulation → voir les simulations
+[ ] Valider une simulation → vérifier le changement statut
+[ ] Supprimer une simulation → vérifier la suppression
+[ ] Accéder à /recapitulatif → voir les stats
+[ ] Cliquer "Actualiser" → vérifier rafraîchissement AJAX
+[ ] Vérifier erreur si argent insuffisant
+[ ] Vérifier les calculs montant + frais
+
+
+================================================================================
+🔗 FLUX UTILISATEUR COMPLET
+================================================================================
+
+1. Utilisateur accède à /achats
+   → Voit liste des besoins non satisfaits
+   → Filtre par ville (optionnel)
+   → Clique "Acheter" sur un besoin
+
+2. Formulaire d'achat apparaît
+   → Entre la quantité
+   → Voit le montant HT + frais + TTC
+   → Clique "Simuler l'Achat"
+
+3. AJAX envoie POST /achats/simulate
+   → Serveur crée une simulation (statut='simule')
+   → Page redirige vers /simulation
+
+4. Page /simulation affiche les simulations
+   → Utilisateur peut:
+     a) Cliquer ✓ Valider → POST /achats/validate → statut='valide'
+     b) Cliquer ✕ Supprimer → POST delete → suppression
+
+5. Utilisateur accède à /recapitulatif
+   → Voit les statistiques
+   → Peut cliquer "Actualiser" pour mise à jour AJAX
+   → Voit la table des achats validés
+
+
+================================================================================
+🔧 TECHNOLOGIES UTILISÉES
+================================================================================
+
+Backend:
+- PHP 8.5.3
+- PDO (Prepared Statements)
+- Flight Framework
+- Session-based Auth
+
+Frontend:
+- Bootstrap 5 (CSS Framework)
+- Vanilla JavaScript (ES6)
+- Fetch API (AJAX)
+- HTML5 Forms
+
+
+================================================================================
+📝 NOTES IMPORTANTES
+================================================================================
+
+1. Tous les besoins filtrés ont id_type IN (1, 2)
+   → Exclut type 3 (Argent)
+
+2. Les frais d'achat sont configurables via config_bngrc
+   → Stocké dans colonne frais_achat_percent
+
+3. Les simulations restent en BD avec statut='simule'
+   → Permettent de reprendre plus tard
+
+4. L'actualisation du récapitulatif est en AJAX
+   → Pas de reload complet de la page
+
+5. Validation des montants côté serveur ET client
+   → Sécurité + UX
+
+6. Toutes les pages utilisent le header.php commun
+   → Navigation cohérente
+
+
+================================================================================
+                            FIN DES DÉTAILS
+================================================================================

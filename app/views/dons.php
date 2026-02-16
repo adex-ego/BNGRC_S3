@@ -23,15 +23,15 @@
                 <?php endif; ?>
 
                 <h3 class="h6 text-uppercase text-primary mb-3">Ajouter un Don</h3>
-                <form method="POST" action="/dons/create" class="row g-3 mb-4">
+                <form method="POST" action="/dons" class="row g-3 mb-4">
                     <div class="col-12 col-md-6">
-                        <label class="form-label" for="id_besoin_type">Type de Don</label>
-                        <select class="form-select" id="id_besoin_type" name="id_besoin_type" required>
-                            <option value="">-- Sélectionnez un type --</option>
-                            <?php if (isset($types_dons) && !empty($types_dons)): ?>
-                                <?php foreach ($types_dons as $type): ?>
-                                    <option value="<?php echo htmlspecialchars((string) $type['id_besoin']); ?>">
-                                        <?php echo htmlspecialchars((string) $type['nom_besoin']); ?>
+                        <label class="form-label" for="id_besoin_item">Besoin</label>
+                        <select class="form-select" id="id_besoin_item" name="id_besoin_item" required>
+                            <option value="">-- Sélectionnez un besoin --</option>
+                            <?php if (isset($items_dons) && !empty($items_dons)): ?>
+                                <?php foreach ($items_dons as $item): ?>
+                                    <option value="<?php echo htmlspecialchars((string) $item['id_besoin']); ?>">
+                                        <?php echo htmlspecialchars((string) $item['nom_besoin']); ?> (<?php echo htmlspecialchars((string) $item['nom_type']); ?>)
                                     </option>
                                 <?php endforeach; ?>
                             <?php endif; ?>
@@ -50,8 +50,8 @@
                     <div class="alert alert-light border mb-4">
                         <h3 class="h6 text-uppercase text-primary">Don selectionne</h3>
                         <div class="row g-2">
-                            <div class="col-12 col-md-4">ID: <?php echo htmlspecialchars((string) $don['id_don']); ?></div>
-                            <div class="col-12 col-md-4">Type: <?php echo htmlspecialchars((string) ($don['nom_besoin'] ?? '')); ?></div>
+                            <div class="col-12 col-md-4">Besoin: <?php echo htmlspecialchars((string) ($don['nom_besoin'] ?? '')); ?></div>
+                            <div class="col-12 col-md-4">Type: <?php echo htmlspecialchars((string) ($don['nom_type'] ?? '')); ?></div>
                             <div class="col-12 col-md-4">Quantite: <?php echo htmlspecialchars((string) $don['quantite_don']); ?></div>
                         </div>
                     </div>
@@ -64,17 +64,29 @@
                         <table class="table table-striped align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
+                                    <th>Besoin</th>
                                     <th>Type</th>
                                     <th class="text-end">Quantite</th>
+                                    <th class="text-end">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($dons as $d): ?>
+                                    <?php $itemId = (string) ($d['id_besoin_item'] ?? ''); ?>
                                     <tr>
-                                        <td><?php echo htmlspecialchars((string) $d['id_don']); ?></td>
                                         <td><?php echo htmlspecialchars((string) ($d['nom_besoin'] ?? '')); ?></td>
+                                        <td><?php echo htmlspecialchars((string) ($d['nom_type'] ?? '')); ?></td>
                                         <td class="text-end"><?php echo htmlspecialchars((string) $d['quantite_don']); ?></td>
+                                        <td class="text-end">
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline-primary btn-sm"
+                                                data-dispatch="type"
+                                                data-type-id="<?php echo htmlspecialchars($itemId); ?>"
+                                            >
+                                                Dispatch
+                                            </button>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -84,5 +96,102 @@
             </div>
         </section>
     </div>
+
+    <div class="modal fade" id="dispatchModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Simulation de dispatch</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const dispatchData = <?php echo json_encode($dispatchByItem ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+        const modalEl = document.getElementById('dispatchModal');
+        const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
+        const modalTitle = modalEl ? modalEl.querySelector('.modal-title') : null;
+        const modalBody = modalEl ? modalEl.querySelector('.modal-body') : null;
+
+        const renderTypeBlock = (itemData) => {
+            if (!itemData) {
+                return '<div class="alert alert-light border mb-0">Type introuvable.</div>';
+            }
+            const rows = (itemData.allocations || []).map((item) => {
+                const statusClass = item.reste_besoin === 0 ? 'bg-success' : 'bg-warning text-dark';
+                const statusLabel = item.reste_besoin === 0 ? 'Satisfait' : 'Partiel';
+                return `
+                    <tr>
+                        <td>${item.id_besoin}</td>
+                        <td>${item.nom_ville || '-'}</td>
+                        <td>${item.date_demande || '-'}</td>
+                        <td class="text-end">${item.quantite_besoin}</td>
+                        <td class="text-end">${item.quantite_dispatched}</td>
+                        <td class="text-end">${item.reste_besoin}</td>
+                        <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+                    </tr>
+                `;
+            }).join('');
+
+            return `
+                <div class="mb-4">
+                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-2">
+                        <div>
+                            <h6 class="mb-0">${itemData.item_nom}</h6>
+                            <small class="text-muted">Type: ${itemData.type_nom || '-'}</small>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary">Total dons: ${itemData.total_don}</span>
+                    </div>
+                    ${rows ? `
+                        <div class="table-responsive table-scroll">
+                            <table class="table table-striped align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID besoin</th>
+                                        <th>Ville</th>
+                                        <th>Date</th>
+                                        <th class="text-end">Besoin</th>
+                                        <th class="text-end">Dispatch</th>
+                                        <th class="text-end">Reste</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${rows}
+                                </tbody>
+                            </table>
+                        </div>
+                    ` : '<div class="alert alert-light border mb-0">Aucun besoin pour ce type.</div>'}
+                </div>
+            `;
+        };
+
+        document.querySelectorAll('[data-dispatch]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                if (!modal || !modalTitle || !modalBody) {
+                    return;
+                }
+                const mode = btn.getAttribute('data-dispatch');
+                if (mode === 'all') {
+                    modalTitle.textContent = 'Simulation de dispatch - Tous les types';
+                    const blocks = Object.values(dispatchData).map(renderTypeBlock).join('');
+                    modalBody.innerHTML = blocks || '<div class="alert alert-light border mb-0">Aucune donnée disponible.</div>';
+                } else {
+                    const itemId = btn.getAttribute('data-type-id');
+                    const itemData = dispatchData[itemId];
+                    modalTitle.textContent = `Simulation de dispatch - ${itemData ? itemData.item_nom : 'Besoin'}`;
+                    modalBody.innerHTML = renderTypeBlock(itemData);
+                }
+                modal.show();
+            });
+        });
+    </script>
 </body>
 </html>
