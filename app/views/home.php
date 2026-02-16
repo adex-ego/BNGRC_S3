@@ -60,7 +60,7 @@
                 <?php if (empty($villes)): ?>
                     <div class="alert alert-light border mb-0">Aucune ville disponible.</div>
                 <?php else: ?>
-                    <div class="table-responsive">
+                    <div class="table-responsive table-scroll">
                         <table class="table table-striped align-middle mb-0" id="villesTable">
                             <thead class="table-light">
                                 <tr>
@@ -71,10 +71,15 @@
                             </thead>
                             <tbody>
                                 <?php foreach ($villes as $v): ?>
+                                    <?php
+                                        $villeId = (string) ($v['id_ville'] ?? '');
+                                        $besoinCount = (int) ($besoinCounts[$villeId] ?? 0);
+                                        $besoinClass = $besoinCount > 0 ? 'btn-danger' : 'btn-success';
+                                    ?>
                                     <tr data-nom="<?php echo htmlspecialchars((string) $v['nom_ville']); ?>" data-region="<?php echo htmlspecialchars((string) ($v['id_region'] ?? '')); ?>">
                                         <td><?php echo htmlspecialchars((string) $v['nom_ville']); ?></td>
                                         <td class="text-end">
-                                            <a class="btn btn-sm btn-outline-primary" href="/besoins/ville?ville=<?php echo htmlspecialchars((string) $v['id_ville']); ?>">Besoins</a>
+                                            <a class="btn btn-sm <?php echo htmlspecialchars($besoinClass); ?>" href="/besoins/ville?ville=<?php echo htmlspecialchars((string) $v['id_ville']); ?>">Besoins</a>
                                         </td>
                                         <td class="text-end">
                                             <a class="btn btn-sm btn-primary" href="/villes/id?id=<?php echo htmlspecialchars((string) $v['id_ville']); ?>">Gérer</a>

@@ -17,12 +17,18 @@ class BesoinController
 
         $besoins = $besoinModel->getBesoin();
         $types_besoins = $besoinModel->getAllTypeBesoins();
+        $items_besoins = $besoinModel->getAllBesoins();
         $villes = $besoinModel->getAllVilles();
+        $success = Flight::request()->query->success ?? null;
+        $insert_id = Flight::request()->query->insert_id ?? null;
 
         Flight::render('besoins', [
             'besoins' => $besoins,
             'types_besoins' => $types_besoins,
-            'villes' => $villes
+            'items_besoins' => $items_besoins,
+            'villes' => $villes,
+            'success' => $success,
+            'insert_id' => $insert_id
         ]);
     }
 
@@ -45,7 +51,10 @@ class BesoinController
 
         Flight::render('besoins', [
             'besoin' => $besoin,
-            'besoins' => $besoinModel->getBesoin()
+            'besoins' => $besoinModel->getBesoin(),
+            'types_besoins' => $besoinModel->getAllTypeBesoins(),
+            'items_besoins' => $besoinModel->getAllBesoins(),
+            'villes' => $besoinModel->getAllVilles()
         ]);
     }
 
@@ -67,7 +76,10 @@ class BesoinController
         $besoins = $besoinModel->findbytype($id_besoin_type);
 
         Flight::render('besoins', [
-            'besoins' => $besoins
+            'besoins' => $besoins,
+            'types_besoins' => $besoinModel->getAllTypeBesoins(),
+            'items_besoins' => $besoinModel->getAllBesoins(),
+            'villes' => $besoinModel->getAllVilles()
         ]);
     }
 
@@ -89,18 +101,21 @@ class BesoinController
         $besoins = $besoinModel->findByVille($id_ville);
 
         Flight::render('besoins', [
-            'besoins' => $besoins
+            'besoins' => $besoins,
+            'types_besoins' => $besoinModel->getAllTypeBesoins(),
+            'items_besoins' => $besoinModel->getAllBesoins(),
+            'villes' => $besoinModel->getAllVilles()
         ]);
     }
 
     public function create(): void
     {
-        $id_besoin_type = Flight::request()->data->id_besoin_type ?? null;
+        $id_besoin_item = Flight::request()->data->id_besoin_item ?? null;
         $quantite_besoin = Flight::request()->data->quantite_besoin ?? null;
         $id_ville = Flight::request()->data->id_ville ?? null;
         $date_demande = Flight::request()->data->date_demande ?? null;
 
-        if (!$id_besoin_type || !$quantite_besoin || !$date_demande) {
+        if (!$id_besoin_item || !$quantite_besoin || !$date_demande) {
             Flight::redirect('/besoins');
             return;
         }
@@ -111,14 +126,8 @@ class BesoinController
         }
         $besoinModel = new BesoinModel($db);
 
-        $insert_id = $besoinModel->insertBesoin($id_besoin_type, $quantite_besoin, $id_ville, $date_demande);
+        $insert_id = $besoinModel->insertBesoin($id_besoin_item, $quantite_besoin, $id_ville, $date_demande);
 
-        Flight::render('besoins', [
-            'success' => true,
-            'insert_id' => $insert_id,
-            'besoins' => $besoinModel->getBesoin(),
-            'types_besoins' => $besoinModel->getAllTypeBesoins(),
-            'villes' => $besoinModel->getAllVilles()
-        ]);
+        Flight::redirect('/besoins?success=1&insert_id=' . urlencode((string) $insert_id));
     }
 }
