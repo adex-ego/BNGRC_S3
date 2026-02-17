@@ -177,4 +177,18 @@ class AchatController
             'achats_valides' => $achatsValides
         ]);
     }
+
+    /**
+     * Commit tous les achats simulés et déduit les dons d'argent
+     */
+    public function commitAll(): void
+    {
+        $result = $this->achatModel->commitAllAchats();
+
+        if ($result) {
+            $this->app->redirect('/simulation?success=1');
+        } else {
+            $this->app->redirect('/simulation?error=1');
+        }
+    }
 }

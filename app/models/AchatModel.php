@@ -252,4 +252,62 @@ class AchatModel
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([$id_achat]);
     }
+
+    /**
+     * Valide tous les achats simulés, déduit les dons d'argent et réduit les besoins
+     */
+    public function commitAllAchats()
+    {
+        try {
+            // Commencer une transaction
+            $this->db->beginTransaction();
+
+            // Récupérer le montant total des simulations
+            $sql = "SELECT SUM(montant_total) AS total FROM achats_bngrc WHERE statut = 'simule'";
+            $stmt = $this->db->query($sql);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $montant_total = (float) ($result['total'] ?? 0);
+
+            if ($montant_total <= 0) {
+                $this->db->rollBack();
+                return false;
+            }
+
+            // Vérifier s'il y a assez de dons d'argent
+            $montant_disponible = $this->getTotalAvailableMoney();
+            if ($montant_total > $montant_disponible) {
+                $this->db->rollBack();
+                return false;
+            }
+
+            // Récupérer tous les achats simulés pour réduire les besoins
+            $sqlGetAchats = "SELECT id_besoin_ville, quantite_achetee FROM achats_bngrc WHERE statut = 'simule'";
+            $stmtGetAchats = $this->db->query($sqlGetAchats);
+            $achats = $stmtGetAchats->fetchAll(PDO::FETCH_ASSOC);
+
+            // Réduire la quantité des besoins pour chaque achat
+            foreach ($achats as $achat) {
+                $sqlReduceBesoin = "UPDATE besoin_ville_bngrc SET quantite_besoin = quantite_besoin - ? WHERE id_besoin = ?";
+                $stmtReduceBesoin = $this->db->prepare($sqlReduceBesoin);
+                $stmtReduceBesoin->execute([$achat['quantite_achetee'], $achat['id_besoin_ville']]);
+            }
+
+            // Valider tous les achats simulés en passant leur statut à 'valide'
+            $sqlValidate = "UPDATE achats_bngrc SET statut = 'valide', date_achat = NOW() WHERE statut = 'simule'";
+            $this->db->query($sqlValidate);
+
+            // Déduire le montant des dons d'argent
+            $sqlDeduct = "UPDATE dons_bngrc SET quantite_don = quantite_don - ? WHERE id_besoin_item = 3";
+            $stmtDeduct = $this->db->prepare($sqlDeduct);
+            $stmtDeduct->execute([$montant_total]);
+
+            // Valider la transaction
+            $this->db->commit();
+            return true;
+
+        } catch (\Exception $e) {
+            $this->db->rollBack();
+            return false;
+        }
+    }
 }
