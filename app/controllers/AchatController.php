@@ -51,7 +51,7 @@ class AchatController
         }
 
         // Récupérer le besoin
-        $sql = "SELECT b.prix_besoin FROM besoin_ville_bngrc bv
+        $sql = "SELECT b.prix_besoin, bv.quantite_besoin FROM besoin_ville_bngrc bv
                 JOIN besoin_bngrc b ON b.id_besoin = bv.id_besoin_item
                 WHERE bv.id_besoin = ?";
         $stmt = $this->app->db()->prepare($sql);
@@ -64,6 +64,14 @@ class AchatController
         }
 
         $prix_unitaire = (float) $besoin['prix_besoin'];
+        $quantite_dispo = (int) ($besoin['quantite_besoin'] ?? 0);
+        if ($quantite > $quantite_dispo) {
+            $this->app->json([
+                'error' => 'Quantité supérieure au besoin restant',
+                'available' => $quantite_dispo
+            ], 400);
+            return;
+        }
         $frais_percent = $this->achatModel->getFraisAchat();
         $montant_sans_frais = $quantite * $prix_unitaire;
         $frais = $montant_sans_frais * ($frais_percent / 100);

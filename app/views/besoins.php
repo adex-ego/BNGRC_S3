@@ -101,6 +101,7 @@
                                     <th class="text-end">Quantite</th>
                                     <th>Ville</th>
                                     <th>Date</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -111,6 +112,13 @@
                                         <td class="text-end"><?php echo htmlspecialchars((string) $b['quantite_besoin']); ?></td>
                                         <td><?php echo htmlspecialchars((string) ($b['nom_ville'] ?? '')); ?></td>
                                         <td><?php echo htmlspecialchars((string) $b['date_demande']); ?></td>
+                                        <td>
+                                            <?php if ((int) ($b['quantite_besoin'] ?? 0) > 0): ?>
+                                                <a class="btn btn-sm btn-outline-success" href="<?php echo BASE_URL ?>/achats">Acheter</a>
+                                            <?php else: ?>
+                                                <span class="badge bg-success-subtle text-success">Satisfait</span>
+                                            <?php endif; ?>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>

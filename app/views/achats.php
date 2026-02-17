@@ -14,66 +14,74 @@
         <section class="card shadow-sm">
             <div class="card-body">
                 <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3">
-                    <h2 class="h5 mb-0">Simulateur d'Achats</h2>
+                    <h2 class="h5 mb-0">Achats</h2>
                     <span class="badge bg-success-subtle text-success">Montant: <?php echo number_format($montant_disponible ?? 0, 2); ?> Ar</span>
                 </div>
 
                 <h5>Besoins à satisfaire</h5>
 
-                <div class="row mb-4">
-                    <div class="col-12 col-md-4">
-                        <label class="form-label" for="id_ville">Filtrer par ville</label>
-                        <select class="form-select" id="id_ville">
-                            <option value="">-- Toutes les villes --</option>
-                            <?php foreach ($villes ?? [] as $ville): ?>
-                                <option value="<?php echo $ville['id_ville']; ?>">
-                                    <?php echo htmlspecialchars($ville['nom_ville']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                <?php if (empty($besoins)): ?>
+                    <div class="alert alert-success">Aucun besoin à satisfaire pour le moment.</div>
+                <?php else: ?>
+                    <div class="row mb-4">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" for="id_ville">Filtrer par ville</label>
+                            <select class="form-select" id="id_ville">
+                                <option value="">-- Toutes les villes --</option>
+                                <?php foreach ($villes ?? [] as $ville): ?>
+                                    <option value="<?php echo $ville['id_ville']; ?>">
+                                        <?php echo htmlspecialchars($ville['nom_ville']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                     </div>
-                </div>
 
-                <div class="table-responsive">
-                    <table class="table table-hover table-sm">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Besoin</th>
-                                <th>Type</th>
-                                <th>Quantité</th>
-                                <th>Prix/U Ar</th>
-                                <th>Total Ar</th>
-                                <th>Ville</th>
-                                <th>Date</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($besoins ?? [] as $besoin): ?>
-                                <tr class="besoin-row" data-id-besoin="<?php echo $besoin['id_besoin']; ?>" data-id-ville="<?php echo $besoin['id_ville']; ?>">
-                                    <td><?php echo htmlspecialchars($besoin['nom_besoin']); ?></td>
-                                    <td><small><?php echo htmlspecialchars($besoin['nom_type']); ?></small></td>
-                                    <td><?php echo $besoin['quantite_besoin']; ?></td>
-                                    <td><?php echo number_format($besoin['prix_besoin'], 2); ?></td>
-                                    <td><?php echo number_format($besoin['montant_total'], 2); ?></td>
-                                    <td><?php echo htmlspecialchars($besoin['nom_ville']); ?></td>
-                                    <td><small><?php echo $besoin['date_demande']; ?></small></td>
-                                    <td>
-                                        <button type="button" class="btn btn-sm btn-outline-success btn-acheter" 
-                                                data-id="<?php echo $besoin['id_besoin']; ?>" 
-                                                data-prix="<?php echo $besoin['prix_besoin']; ?>">
-                                            Acheter
-                                        </button>
-                                    </td>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Besoin</th>
+                                    <th>Type</th>
+                                    <th>Quantité</th>
+                                    <th>Prix/U Ar</th>
+                                    <th>Total Ar</th>
+                                    <th>Ville</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
                                 </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($besoins ?? [] as $besoin): ?>
+                                    <tr class="besoin-row" data-id-besoin="<?php echo $besoin['id_besoin']; ?>" data-id-ville="<?php echo $besoin['id_ville']; ?>">
+                                        <td><?php echo htmlspecialchars($besoin['nom_besoin']); ?></td>
+                                        <td><small><?php echo htmlspecialchars($besoin['nom_type']); ?></small></td>
+                                        <td><?php echo $besoin['quantite_besoin']; ?></td>
+                                        <td><?php echo number_format($besoin['prix_besoin'], 2); ?></td>
+                                        <td><?php echo number_format($besoin['montant_total'], 2); ?></td>
+                                        <td><?php echo htmlspecialchars($besoin['nom_ville']); ?></td>
+                                        <td><small><?php echo $besoin['date_demande']; ?></small></td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-success btn-acheter" 
+                                                    data-id="<?php echo $besoin['id_besoin']; ?>" 
+                                                    data-prix="<?php echo $besoin['prix_besoin']; ?>">
+                                                Acheter
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
 
                 <hr class="my-4">
 
                 <h5>Formulaire d'Achat</h5>
+
+                <div id="achatSuccess" class="alert alert-success d-none" role="alert">
+                    Achat ajouté. <a href="<?php echo BASE_URL ?>/simulation" class="alert-link">Aller payer</a>
+                </div>
 
                 <form id="formAchat" class="row g-3">
                     <div class="col-12 col-md-6">
@@ -102,7 +110,7 @@
                     </div>
 
                     <div class="col-12">
-                        <button type="submit" class="btn btn-primary">Simuler l'Achat</button>
+                            <button type="submit" class="btn btn-primary">Ajouter l'Achat</button>
                     </div>
                 </form>
 
@@ -183,8 +191,11 @@
                 if (data.error) {
                     alert('Erreur : ' + data.error);
                 } else {
-                    alert('Simulation créée ! ID : ' + data.id_achat);
-                    window.location.href = '<?php echo BASE_URL ?>/simulation';
+                    const successEl = document.getElementById('achatSuccess');
+                    if (successEl) {
+                        successEl.classList.remove('d-none');
+                    }
+                    document.getElementById('quantite_achetee').value = '';
                 }
             } catch (error) {
                 alert('Erreur : ' + error.message);
