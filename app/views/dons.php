@@ -23,7 +23,7 @@
                             Dispatch par date
                         </button>
                         <button type="button" class="btn btn-outline-primary btn-sm" data-dispatch="all-quantity">
-                            Dispatch par quantite (du plus petit)
+                            Dispatch par quantite
                         </button>
                     </div>
                 </div>
