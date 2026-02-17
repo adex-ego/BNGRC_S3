@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <title>BNGRC - Dons</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL ?>/public/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL ?>/public/assets/css/style.css">
 </head>
 <body>
     <div class="container py-4">
@@ -112,7 +112,7 @@
         </div>
     </div>
 
-    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="<?php echo BASE_URL ?>/public/assets/js/bootstrap.bundle.min.js"></script>
     <script>
         const dispatchData = <?php echo json_encode($dispatchByItem ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
         const modalEl = document.getElementById('dispatchModal');

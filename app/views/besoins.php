@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <title>BNGRC - Home</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL ?>/public/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL ?>/public/assets/css/style.css">
 </head>
 <body>
     <div class="container py-4">
