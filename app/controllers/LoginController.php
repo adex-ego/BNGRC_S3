@@ -42,7 +42,6 @@ class LoginController
 		$email = trim((string) ($request->data->email ?? ''));
 		$password = (string) ($request->data->password ?? '');
 
-		// Debug - afficher ce qui est reçu
 		error_log("=== LOGIN DEBUG ===");
 		error_log("Email reçu: " . $email);
 		error_log("Password longueur: " . strlen($password));

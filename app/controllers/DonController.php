@@ -102,7 +102,7 @@ class DonController
 
     public function dispatch(): void
     {
-        $mode = (string) (Flight::request()->data->mode ?? '');
+        $mode = (string) (Flight::request()->data->mode ?? $_POST['mode'] ?? '');
         if (!in_array($mode, [ 'date', 'quantity', 'proportion' ], true)) {
             Flight::redirect('/dons?dispatch_error=1');
             return;
@@ -117,10 +117,8 @@ class DonController
         $dispatchModel = new DispatchModel($db);
         $besoinModel = new \app\models\BesoinModel($db);
 
-        // Vérifier s'il existe déjà un dispatch actif
         $latestDispatch = $dispatchModel->getLatestDispatch();
         if ($latestDispatch !== null) {
-            // Un dispatch existe déjà, redirection avec erreur
             Flight::redirect('/dons?dispatch_error=1');
             return;
         }
@@ -188,7 +186,6 @@ class DonController
                 }
             }
 
-            // Mettre à jour les quantités de besoins en base après le dispatch
             $dispatchModel->updateBesoinQuantitiesFromDispatch($dispatchId);
 
             $db->commit();
@@ -233,12 +230,10 @@ class DonController
             $typeName = (string) ($item['nom_type'] ?? '');
             $totalDon = (int) ($donTotalsByItem[$itemIdStr] ?? 0);
 
-            // Récupérer tous les besoins pour cet item
             $besoinsPourItem = array_filter($besoins, function($b) use ($itemId) {
                 return (int) ($b['id_besoin_item'] ?? 0) === $itemId;
             });
 
-            // Calculer la somme totale des besoins pour cet item
             $totalBesoins = 0;
             foreach ($besoinsPourItem as $b) {
                 $totalBesoins += (int) ($b['quantite_besoin'] ?? 0);
@@ -246,7 +241,6 @@ class DonController
 
             $allocations = [];
 
-            // Si pas de besoins ou pas de dons, pas d'allocation
             if ($totalBesoins === 0 || $totalDon === 0) {
                 $dispatchByItem[$itemIdStr] = [
                     'item_id' => $itemIdStr,
@@ -258,7 +252,6 @@ class DonController
                 continue;
             }
 
-            // Première passe : allocation proportionnelle avec arrondi vers le bas
             $proportionalAllocations = [];
             $decimals = [];
 
@@ -266,7 +259,6 @@ class DonController
                 $besoinId = (int) ($b['id_besoin'] ?? 0);
                 $quantiteBesoin = (int) ($b['quantite_besoin'] ?? 0);
 
-                // Calcul proportionnel : besoin * (total_don / total_besoins)
                 $proportionalAmount = $quantiteBesoin * ($totalDon / $totalBesoins);
                 $floorAmount = (int) floor($proportionalAmount);
                 $decimalPart = $proportionalAmount - $floorAmount;
@@ -277,19 +269,16 @@ class DonController
                     'besoin' => $b
                 ];
 
-                // Garder trace des décimales pour la distribution des restes
                 if ($decimalPart > 0) {
                     $decimals[$besoinId] = $decimalPart;
                 }
             }
 
-            // Calculer les dons restants après la première passe
             $allocatedSoFar = array_reduce($proportionalAllocations, function($carry, $item) {
                 return $carry + $item['floor'];
             }, 0);
             $restDon = $totalDon - $allocatedSoFar;
 
-            // Deuxième passe : distribuer les restes selon les décimales (du plus grand au plus petit)
             if ($restDon > 0 && !empty($decimals)) {
                 arsort($decimals);
 
@@ -304,7 +293,6 @@ class DonController
                 }
             }
 
-            // Construire les allocations finales
             foreach ($proportionalAllocations as $besoinId => $allocation) {
                 if (!isset($allocation['besoin'])) {
                     continue;

@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const baseUrl = window.BASE_URL || '';
     let selectedBesoin = null;
 
-    // Filtre par ville
     const villeSelect = document.getElementById('id_ville');
     if (villeSelect) {
         villeSelect.addEventListener('change', function(e) {
@@ -19,7 +18,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Clic sur bouton "Acheter"
     document.querySelectorAll('.btn-acheter').forEach(btn => {
         btn.addEventListener('click', function() {
             selectedBesoin = {
@@ -32,7 +30,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Calcul du montant lors de la saisie de quantité
     const quantiteInput = document.getElementById('quantite_achetee');
     if (quantiteInput) {
         quantiteInput.addEventListener('input', function() {
@@ -49,7 +46,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Soumission du formulaire
     const formAchat = document.getElementById('formAchat');
     if (formAchat) {
         formAchat.addEventListener('submit', async function(e) {
