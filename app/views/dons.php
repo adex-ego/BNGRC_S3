@@ -31,6 +31,12 @@
                                 Dispatch par quantite
                             </button>
                         </form>
+                        <form method="POST" action="<?php echo BASE_URL ?>/dons/dispatch" class="d-inline">
+                            <input type="hidden" name="mode" value="proportion">
+                            <button type="submit" class="btn btn-outline-success btn-sm">
+                                Dispatch proportionnelle
+                            </button>
+                        </form>
                         <form method="POST" action="<?php echo BASE_URL ?>/dons/dispatch/reset" class="d-inline">
                             <button type="submit" class="btn btn-outline-danger btn-sm">
                                 Reset dispatch
@@ -104,7 +110,7 @@
                         <table class="table table-striped align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Besoin</th>
+                                    <th>Dons</th>
                                     <th>Type</th>
                                     <th class="text-end">Quantite</th>
                                 </tr>
@@ -213,6 +219,8 @@
                 modalTitle.textContent = 'Dispatch en base - Tous les dons (par date)';
             } else if (effectiveMode === 'quantity') {
                 modalTitle.textContent = 'Dispatch en base - Tous les dons (par quantite)';
+            } else if (effectiveMode === 'proportion') {
+                modalTitle.textContent = 'Dispatch en base - Tous les dons (proportionnelle)';
             } else {
                 modalTitle.textContent = 'Dispatch en base - Tous les dons';
             }

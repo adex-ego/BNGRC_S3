@@ -2,7 +2,7 @@ USE db_s2_ETU003945;
 
 CREATE TABLE dispatch_bngrc (
     id_dispatch INT PRIMARY KEY AUTO_INCREMENT,
-    mode ENUM('date', 'quantity') NOT NULL,
+    mode ENUM('date', 'quantity', 'proportion') NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

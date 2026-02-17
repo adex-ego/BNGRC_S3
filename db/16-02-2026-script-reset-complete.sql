@@ -7,6 +7,9 @@ USE db_s2_ETU003945;
 -- ============================================
 -- DROP TOUTES LES TABLES EXISTANTES
 -- ============================================
+DROP TABLE IF EXISTS dispatch_detail_bngrc;
+DROP TABLE IF EXISTS dispatch_item_bngrc;
+DROP TABLE IF EXISTS dispatch_bngrc;
 DROP TABLE IF EXISTS dons_utilises_bngrc;
 DROP TABLE IF EXISTS achats_bngrc;
 DROP TABLE IF EXISTS config_bngrc;
@@ -155,19 +158,71 @@ INSERT INTO besoin_bngrc (id_type, nom_besoin, prix_besoin) VALUES
 (2, 'Bois', 40000.00);
 
 -- Besoins par ville (quantités demandées)
+-- Test du dispatch proportionnel: 
+-- Riz (id=1): Ville 1=100, Ville 2=50, Ville 3=25 (Total=175) avec 6 dons = répartition proportionnelle
 INSERT INTO besoin_ville_bngrc (id_besoin_item, quantite_besoin, id_ville, date_demande) VALUES
-(1, 100, 1, '2026-02-15'),  -- 100 kg de Riz à Antananarivo
-(1, 50, 3, '2026-02-14'),   -- 50 kg de Riz à Antsirabe
-(2, 30, 1, '2026-02-15'),   -- 30 kg de Haricots à Antananarivo
-(4, 20, 3, '2026-02-13'),   -- 20 sacs de Ciment à Antsirabe
-(5, 100, 5, '2026-02-14'),  -- 100 tôles à Antsiranana
-(6, 50, 11, '2026-02-15');  -- 50 m³ de Bois à Toliara
+-- Riz: besoins répartis dans 3 villes (total 175)
+(1, 100, 1, '2026-02-15'),  -- Antananarivo
+(1, 50, 3, '2026-02-14'),   -- Antsirabe
+(1, 25, 5, '2026-02-16'),   -- Toamasina
 
--- Dons en Argent (quantités en MGA)
+-- Haricots: besoins répartis dans 2 villes (total 80)
+(2, 50, 2, '2026-02-15'),   -- Ambohidratrimo
+(2, 30, 4, '2026-02-14'),   -- Betafo
+
+-- Sucre: besoins répartis dans 4 villes (total 120)
+(3, 30, 1, '2026-02-15'),   -- Antananarivo
+(3, 40, 7, '2026-02-14'),   -- Mahajanga
+(3, 25, 9, '2026-02-16'),   -- Antsiranana
+(3, 25, 11, '2026-02-16'),  -- Toliara
+
+-- Ciment: besoins répartis dans 3 villes (total 60)
+(4, 20, 3, '2026-02-13'),   -- Antsirabe
+(4, 25, 5, '2026-02-14'),   -- Toamasina
+(4, 15, 8, '2026-02-15'),   -- Marovoay
+
+-- Tôles: besoins répartis dans 2 villes (total 150)
+(5, 100, 5, '2026-02-14'),  -- Toamasina
+(5, 50, 10, '2026-02-15'),  -- Nosy Be
+
+-- Bois: besoins répartis dans 3 villes (total 130)
+(6, 50, 11, '2026-02-15'),  -- Toliara
+(6, 40, 6, '2026-02-14'),   -- Brickaville
+(6, 40, 12, '2026-02-16');  -- Morombe
+
+-- Dons en Argent pour Riz (quantités - total 6 dons)
 INSERT INTO dons_bngrc (id_besoin_item, quantite_don) VALUES
-(3, 5000000),  -- 5 000 000 MGA en argent (type Argent)
-(3, 2500000),  -- 2 500 000 MGA en argent
-(3, 3750000);  -- 3 750 000 MGA en argent
+(1, 1),  -- Don de 1 unité
+(1, 2),  -- Don de 2 unités
+(1, 3);  -- Don de 3 unités
+
+-- Dons en Haricots (quantités - total 10 dons)
+INSERT INTO dons_bngrc (id_besoin_item, quantite_don) VALUES
+(2, 4),  -- Don de 4 unités
+(2, 3),  -- Don de 3 unités
+(2, 3);  -- Don de 3 unités
+
+-- Dons en Sucre (quantités - total 15 dons)
+INSERT INTO dons_bngrc (id_besoin_item, quantite_don) VALUES
+(3, 5),  -- Don de 5 unités
+(3, 5),  -- Don de 5 unités
+(3, 5);  -- Don de 5 unités
+
+-- Dons en Ciment (quantités - total 25 dons)
+INSERT INTO dons_bngrc (id_besoin_item, quantite_don) VALUES
+(4, 12), -- Don de 12 unités
+(4, 13); -- Don de 13 unités
+
+-- Dons en Tôles (quantités - total 75 dons)
+INSERT INTO dons_bngrc (id_besoin_item, quantite_don) VALUES
+(5, 40), -- Don de 40 unités
+(5, 35); -- Don de 35 unités
+
+-- Dons en Bois (quantités - total 60 dons)
+INSERT INTO dons_bngrc (id_besoin_item, quantite_don) VALUES
+(6, 30), -- Don de 30 unités
+(6, 20), -- Don de 20 unités
+(6, 10); -- Don de 10 unités
 
 -- Utilisateurs de test
 INSERT INTO user_takalo (username, email, hashedpassword) VALUES

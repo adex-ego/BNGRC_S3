@@ -103,7 +103,7 @@ class DonController
     public function dispatch(): void
     {
         $mode = (string) (Flight::request()->data->mode ?? '');
-        if (!in_array($mode, [ 'date', 'quantity' ], true)) {
+        if (!in_array($mode, [ 'date', 'quantity', 'proportion' ], true)) {
             Flight::redirect('/dons?dispatch_error=1');
             return;
         }
@@ -130,40 +130,52 @@ class DonController
             $donTotalsByItem[$itemId] = (int) ($row['total_don'] ?? 0);
         }
 
-        $sorter = $mode === 'date'
-            ? function ($a, $b) {
-                $dateA = $a['date_demande'] ?? '';
-                $dateB = $b['date_demande'] ?? '';
-                if ($dateA === $dateB) {
-                    return (int) ($a['id_besoin'] ?? 0) <=> (int) ($b['id_besoin'] ?? 0);
+        if ($mode === 'proportion') {
+            $dispatchByItem = $this->buildDispatchByItemProportional($items_dons, $besoins, $donTotalsByItem);
+        } else {
+            $sorter = $mode === 'date'
+                ? function ($a, $b) {
+                    $dateA = $a['date_demande'] ?? '';
+                    $dateB = $b['date_demande'] ?? '';
+                    if ($dateA === $dateB) {
+                        return (int) ($a['id_besoin'] ?? 0) <=> (int) ($b['id_besoin'] ?? 0);
+                    }
+                    return strcmp($dateA, $dateB);
                 }
-                return strcmp($dateA, $dateB);
-            }
-            : function ($a, $b) {
-                $qtyA = (int) ($a['quantite_besoin'] ?? 0);
-                $qtyB = (int) ($b['quantite_besoin'] ?? 0);
-                if ($qtyA === $qtyB) {
-                    return (int) ($a['id_besoin'] ?? 0) <=> (int) ($b['id_besoin'] ?? 0);
-                }
-                return $qtyA <=> $qtyB;
-            };
+                : function ($a, $b) {
+                    $qtyA = (int) ($a['quantite_besoin'] ?? 0);
+                    $qtyB = (int) ($b['quantite_besoin'] ?? 0);
+                    if ($qtyA === $qtyB) {
+                        return (int) ($a['id_besoin'] ?? 0) <=> (int) ($b['id_besoin'] ?? 0);
+                    }
+                    return $qtyA <=> $qtyB;
+                };
 
-        $dispatchByItem = $this->buildDispatchByItem($items_dons, $besoins, $donTotalsByItem, $sorter);
+            $dispatchByItem = $this->buildDispatchByItem($items_dons, $besoins, $donTotalsByItem, $sorter);
+        }
 
         $db->beginTransaction();
         try {
             $dispatchModel->resetAll();
             $dispatchId = $dispatchModel->createDispatch($mode);
 
+            if (!$dispatchId) {
+                throw new \Exception('Impossible de créer le dispatch');
+            }
+
             foreach ($items_dons as $item) {
                 $itemId = (int) ($item['id_besoin'] ?? 0);
                 if ($itemId === 0) {
                     continue;
                 }
-                $dispatchModel->insertDispatchItem($dispatchId, $itemId, (int) ($donTotalsByItem[(string) $itemId] ?? 0));
+                $donAmount = (int) ($donTotalsByItem[(string) $itemId] ?? 0);
+                $dispatchModel->insertDispatchItem($dispatchId, $itemId, $donAmount);
             }
 
             foreach ($dispatchByItem as $itemData) {
+                if (!isset($itemData['allocations'])) {
+                    continue;
+                }
                 foreach ($itemData['allocations'] as $allocation) {
                     $dispatchModel->insertDispatchDetail($dispatchId, $allocation);
                 }
@@ -172,6 +184,7 @@ class DonController
             $db->commit();
         } catch (\Throwable $e) {
             $db->rollBack();
+            error_log('Dispatch error: ' . $e->getMessage());
             Flight::redirect('/dons?dispatch_error=1');
             return;
         }
@@ -193,6 +206,126 @@ class DonController
             return;
         }
         Flight::redirect('/dons?reset=1');
+    }
+
+    private function buildDispatchByItemProportional(array $items_dons, array $besoins, array $donTotalsByItem): array
+    {
+        $dispatchByItem = [];
+
+        foreach ($items_dons as $item) {
+            $itemId = (int) ($item['id_besoin'] ?? 0);
+            if ($itemId === 0) {
+                continue;
+            }
+
+            $itemIdStr = (string) $itemId;
+            $itemName = (string) ($item['nom_besoin'] ?? '');
+            $typeName = (string) ($item['nom_type'] ?? '');
+            $totalDon = (int) ($donTotalsByItem[$itemIdStr] ?? 0);
+
+            // Récupérer tous les besoins pour cet item
+            $besoinsPourItem = array_filter($besoins, function($b) use ($itemId) {
+                return (int) ($b['id_besoin_item'] ?? 0) === $itemId;
+            });
+
+            // Calculer la somme totale des besoins pour cet item
+            $totalBesoins = 0;
+            foreach ($besoinsPourItem as $b) {
+                $totalBesoins += (int) ($b['quantite_besoin'] ?? 0);
+            }
+
+            $allocations = [];
+
+            // Si pas de besoins ou pas de dons, pas d'allocation
+            if ($totalBesoins === 0 || $totalDon === 0) {
+                $dispatchByItem[$itemIdStr] = [
+                    'item_id' => $itemIdStr,
+                    'item_nom' => $itemName,
+                    'type_nom' => $typeName,
+                    'total_don' => $totalDon,
+                    'allocations' => []
+                ];
+                continue;
+            }
+
+            // Première passe : allocation proportionnelle avec arrondi vers le bas
+            $proportionalAllocations = [];
+            $decimals = [];
+
+            foreach ($besoinsPourItem as $b) {
+                $besoinId = (int) ($b['id_besoin'] ?? 0);
+                $quantiteBesoin = (int) ($b['quantite_besoin'] ?? 0);
+
+                // Calcul proportionnel : besoin * (total_don / total_besoins)
+                $proportionalAmount = $quantiteBesoin * ($totalDon / $totalBesoins);
+                $floorAmount = (int) floor($proportionalAmount);
+                $decimalPart = $proportionalAmount - $floorAmount;
+
+                $proportionalAllocations[$besoinId] = [
+                    'floor' => $floorAmount,
+                    'decimal' => $decimalPart,
+                    'besoin' => $b
+                ];
+
+                // Garder trace des décimales pour la distribution des restes
+                if ($decimalPart > 0) {
+                    $decimals[$besoinId] = $decimalPart;
+                }
+            }
+
+            // Calculer les dons restants après la première passe
+            $allocatedSoFar = array_reduce($proportionalAllocations, function($carry, $item) {
+                return $carry + $item['floor'];
+            }, 0);
+            $restDon = $totalDon - $allocatedSoFar;
+
+            // Deuxième passe : distribuer les restes selon les décimales (du plus grand au plus petit)
+            if ($restDon > 0 && !empty($decimals)) {
+                arsort($decimals);
+
+                foreach ($decimals as $besoinId => $decimal) {
+                    if ($restDon <= 0) {
+                        break;
+                    }
+                    if (isset($proportionalAllocations[$besoinId])) {
+                        $proportionalAllocations[$besoinId]['floor'] += 1;
+                        $restDon -= 1;
+                    }
+                }
+            }
+
+            // Construire les allocations finales
+            foreach ($proportionalAllocations as $besoinId => $allocation) {
+                if (!isset($allocation['besoin'])) {
+                    continue;
+                }
+                
+                $b = $allocation['besoin'];
+                $quantiteBesoin = (int) ($b['quantite_besoin'] ?? 0);
+                $quantiteDispatched = $allocation['floor'];
+
+                $allocations[] = [
+                    'id_besoin' => $besoinId,
+                    'id_besoin_item' => (int) ($b['id_besoin_item'] ?? 0),
+                    'nom_ville' => (string) ($b['nom_ville'] ?? ''),
+                    'date_demande' => (string) ($b['date_demande'] ?? ''),
+                    'quantite_besoin' => $quantiteBesoin,
+                    'quantite_dispatched' => $quantiteDispatched,
+                    'reste_besoin' => max(0, $quantiteBesoin - $quantiteDispatched),
+                    'id_ville' => isset($b['id_ville']) ? (int) $b['id_ville'] : null
+                ];
+            }
+
+            $dispatchByItem[$itemIdStr] = [
+                'item_id' => $itemIdStr,
+                'item_nom' => $itemName,
+                'type_nom' => $typeName,
+                'total_don' => $totalDon,
+                'allocations' => $allocations
+            ];
+        }
+
+        return $dispatchByItem;
     }
 
     private function buildDispatchByItem(array $items_dons, array $besoins, array $donTotalsByItem, callable $sorter): array
