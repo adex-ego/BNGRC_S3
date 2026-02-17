@@ -97,6 +97,9 @@
         </section>
     </div>
 
+    <script>
+        window.BASE_URL = '<?php echo BASE_URL ?>';
+    </script>
     <script src="<?php echo BASE_URL ?>/public/assets/js/home.js"></script>
 </body>
 </html>

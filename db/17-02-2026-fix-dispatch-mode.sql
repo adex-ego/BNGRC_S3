@@ -9,3 +9,4 @@ ALTER TABLE dispatch_bngrc MODIFY COLUMN mode ENUM('date', 'quantity', 'proporti
 
 -- Vérifier que la modification est bien appliquée
 DESCRIBE dispatch_bngrc;
+ALTER TABLE dispatch_bngrc MODIFY COLUMN mode ENUM('date', 'quantity', 'proportion') NOT NULL;

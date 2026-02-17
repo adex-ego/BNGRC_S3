@@ -1,10 +1,14 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const dispatchDataDate = window.dispatchByItemDate || {};
-    const dispatchDataQuantity = window.dispatchByItemQuantity || {};
+    const dispatchData = window.dispatchData || {};
+    const dispatchMode = window.dispatchMode || null;
+    const dispatchRequestedMode = window.dispatchRequestedMode || null;
+    const shouldAutoOpen = window.shouldAutoOpen || false;
+    const shouldCleanParams = window.shouldCleanParams || false;
     const modalEl = document.getElementById('dispatchModal');
     const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
     const modalTitle = modalEl ? modalEl.querySelector('.modal-title') : null;
     const modalBody = modalEl ? modalEl.querySelector('.modal-body') : null;
+    const openDispatchBtn = document.getElementById('openDispatchBtn');
 
     const renderTypeBlock = (itemData) => {
         if (!itemData) {
@@ -57,22 +61,46 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     };
 
-    document.querySelectorAll('[data-dispatch]').forEach((btn) => {
-        btn.addEventListener('click', () => {
-            if (!modal || !modalTitle || !modalBody) {
-                return;
-            }
-            const mode = btn.getAttribute('data-dispatch');
-            if (mode === 'all-date') {
-                modalTitle.textContent = 'Simulation de dispatch - Tous les dons (par date)';
-                const blocks = Object.values(dispatchDataDate).map(renderTypeBlock).join('');
-                modalBody.innerHTML = blocks || '<div class="alert alert-light border mb-0">Aucune donnée disponible.</div>';
-            } else if (mode === 'all-quantity') {
-                modalTitle.textContent = 'Simulation de dispatch - Tous les dons (par quantite)';
-                const blocks = Object.values(dispatchDataQuantity).map(renderTypeBlock).join('');
-                modalBody.innerHTML = blocks || '<div class="alert alert-light border mb-0">Aucune donnée disponible.</div>';
-            }
-            modal.show();
+    const openDispatchModal = () => {
+        if (!modal || !modalTitle || !modalBody) {
+            return;
+        }
+        const effectiveMode = dispatchMode || dispatchRequestedMode;
+        if (effectiveMode === 'date') {
+            modalTitle.textContent = 'Dispatch en base - Tous les dons (par date)';
+        } else if (effectiveMode === 'quantity') {
+            modalTitle.textContent = 'Dispatch en base - Tous les dons (par quantite)';
+        } else if (effectiveMode === 'proportion') {
+            modalTitle.textContent = 'Dispatch en base - Tous les dons (proportionnelle)';
+        } else {
+            modalTitle.textContent = 'Dispatch en base - Tous les dons';
+        }
+        const blocks = Object.values(dispatchData || {}).map(renderTypeBlock).join('');
+        modalBody.innerHTML = blocks || '<div class="alert alert-light border mb-0">Aucune donnée disponible.</div>';
+        modal.show();
+    };
+
+    if (shouldAutoOpen) {
+        openDispatchModal();
+    }
+
+    if (openDispatchBtn) {
+        openDispatchBtn.addEventListener('click', () => {
+            openDispatchModal();
         });
-    });
+    }
+
+    if (shouldCleanParams && window.history.replaceState) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('dispatch');
+        url.searchParams.delete('mode');
+        url.searchParams.delete('reset');
+        url.searchParams.delete('dispatch_error');
+        url.searchParams.delete('reset_error');
+        url.searchParams.delete('success');
+        url.searchParams.delete('insert_id');
+        const query = url.searchParams.toString();
+        const nextUrl = url.pathname + (query ? `?${query}` : '');
+        window.history.replaceState({}, document.title, nextUrl);
+    }
 });
