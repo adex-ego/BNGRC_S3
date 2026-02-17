@@ -47,7 +47,6 @@
                                     <th>Montant HT Ar</th>
                                     <th>Frais</th>
                                     <th>Total Ar</th>
-                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -60,10 +59,6 @@
                                         <td><?php echo number_format($achat['quantite_achetee'] * $achat['prix_unitaire'], 2); ?></td>
                                         <td><?php echo $achat['frais_achat_percent'] ?? 0; ?>%</td>
                                         <td><strong><?php echo number_format($achat['montant_total'], 2); ?></strong></td>
-                                        <td>
-                                            <button class="btn btn-sm btn-success btn-valider" data-id="<?php echo $achat['id_achat']; ?>" title="Valider">✓</button>
-                                            <button class="btn btn-sm btn-danger btn-supprimer" data-id="<?php echo $achat['id_achat']; ?>">✕</button>
-                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
