@@ -1,7 +1,7 @@
 -- Script complet de réinitialisation avec données de test
 -- Date: 2026-02-17
 
-CREATE DATABASE IF NOT EXISTS db_s2_ETU003945;
+-- CREATE DATABASE IF NOT EXISTS db_s2_ETU003945;
 USE db_s2_ETU003945;
 
 -- ============================================

@@ -23,7 +23,7 @@
                             <?php endif; ?>
                         </p>
                     </div>
-                    <a class="btn btn-outline-primary" href="/home">Retour</a>
+                    <a class="btn btn-outline-primary" href="<?php echo BASE_URL?>/home">Retour</a>
                 </div>
             </div>
         </section>

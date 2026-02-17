@@ -16,15 +16,11 @@ class AchatController
         $this->achatModel = new AchatModel($app->db());
     }
 
-    /**
-     * Affiche la page d'achats avec la liste des besoins restants
-     */
     public function index(): void
     {
         $besoins = $this->achatModel->getBesoinsRestants();
         $villes = [];
         
-        // Récupérer les modèles pour les villes
         $sql = "SELECT id_ville, nom_ville FROM ville_bngrc ORDER BY nom_ville";
         $stmt = $this->app->db()->query($sql);
         $villes = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -36,9 +32,6 @@ class AchatController
         ]);
     }
 
-    /**
-     * Crée une simulation d'achat
-     */
     public function simulate(): void
     {
         $request = $this->app->request();
@@ -50,7 +43,6 @@ class AchatController
             return;
         }
 
-        // Récupérer le besoin
         $sql = "SELECT b.prix_besoin FROM besoin_ville_bngrc bv
                 JOIN besoin_bngrc b ON b.id_besoin = bv.id_besoin_item
                 WHERE bv.id_besoin = ?";
@@ -80,7 +72,6 @@ class AchatController
             return;
         }
 
-        // Créer la simulation
         $id_achat = $this->achatModel->createAchatSimulation($id_besoin_ville, $quantite, $prix_unitaire, $frais_percent);
 
         $this->app->json([
@@ -91,9 +82,6 @@ class AchatController
         ]);
     }
 
-    /**
-     * Valide une simulation d'achat
-     */
     public function validate(): void
     {
         $request = $this->app->request();
@@ -110,7 +98,6 @@ class AchatController
             return;
         }
 
-        // Valider l'achat
         $result = $this->achatModel->validateAchat($id_achat);
 
         if ($result) {
@@ -120,9 +107,6 @@ class AchatController
         }
     }
 
-    /**
-     * Affiche la page de simulation
-     */
     public function showSimulation(): void
     {
         $achats = $this->achatModel->getAchatsSimules();
@@ -133,9 +117,6 @@ class AchatController
         ]);
     }
 
-    /**
-     * Supprime une simulation
-     */
     public function deleteSimulation(): void
     {
         $request = $this->app->request();
@@ -155,18 +136,12 @@ class AchatController
         }
     }
 
-    /**
-     * Affiche le récapitulatif en JSON (pour AJAX)
-     */
     public function recap(): void
     {
         $recap = $this->achatModel->getRecapitulatif();
         $this->app->json($recap);
     }
 
-    /**
-     * Affiche la page de récapitulation
-     */
     public function showRecap(): void
     {
         $recap = $this->achatModel->getRecapitulatif();
@@ -178,9 +153,6 @@ class AchatController
         ]);
     }
 
-    /**
-     * Commit tous les achats simulés et déduit les dons d'argent
-     */
     public function commitAll(): void
     {
         $result = $this->achatModel->commitAllAchats();
