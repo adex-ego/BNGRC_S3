@@ -25,7 +25,8 @@ class DonController
         Flight::render('dons', [
             'dons' => $dons,
             'items_dons' => $items_dons,
-            'dispatchByItem' => $dispatchPayload['dispatchByItem'],
+            'dispatchByItemDate' => $dispatchPayload['dispatchByItemDate'],
+            'dispatchByItemQuantity' => $dispatchPayload['dispatchByItemQuantity'],
             'donTotalsByItem' => $dispatchPayload['donTotalsByItem'],
             'success' => $success,
             'insert_id' => $insert_id
@@ -56,7 +57,8 @@ class DonController
             'don' => $don,
             'dons' => $dons,
             'items_dons' => $items_dons,
-            'dispatchByItem' => $dispatchPayload['dispatchByItem'],
+            'dispatchByItemDate' => $dispatchPayload['dispatchByItemDate'],
+            'dispatchByItemQuantity' => $dispatchPayload['dispatchByItemQuantity'],
             'donTotalsByItem' => $dispatchPayload['donTotalsByItem']
         ]);
     }
@@ -90,15 +92,6 @@ class DonController
         $besoinModel = new \app\models\BesoinModel($db);
         $besoins = $besoinModel->getBesoin();
 
-        usort($besoins, function ($a, $b) {
-            $dateA = $a['date_demande'] ?? '';
-            $dateB = $b['date_demande'] ?? '';
-            if ($dateA === $dateB) {
-                return (int) ($a['id_besoin'] ?? 0) <=> (int) ($b['id_besoin'] ?? 0);
-            }
-            return strcmp($dateA, $dateB);
-        });
-
         $donTotalsByItem = [];
         foreach ($dons as $d) {
             $itemId = (string) ($d['id_besoin_item'] ?? '');
@@ -108,6 +101,36 @@ class DonController
             $donTotalsByItem[$itemId] = ($donTotalsByItem[$itemId] ?? 0) + (int) ($d['quantite_don'] ?? 0);
         }
 
+        $dispatchByItemDate = $this->buildDispatchByItem($items_dons, $besoins, $donTotalsByItem, function ($a, $b) {
+            $dateA = $a['date_demande'] ?? '';
+            $dateB = $b['date_demande'] ?? '';
+            if ($dateA === $dateB) {
+                return (int) ($a['id_besoin'] ?? 0) <=> (int) ($b['id_besoin'] ?? 0);
+            }
+            return strcmp($dateA, $dateB);
+        });
+
+        $dispatchByItemQuantity = $this->buildDispatchByItem($items_dons, $besoins, $donTotalsByItem, function ($a, $b) {
+            $qtyA = (int) ($a['quantite_besoin'] ?? 0);
+            $qtyB = (int) ($b['quantite_besoin'] ?? 0);
+            if ($qtyA === $qtyB) {
+                return (int) ($a['id_besoin'] ?? 0) <=> (int) ($b['id_besoin'] ?? 0);
+            }
+            return $qtyA <=> $qtyB;
+        });
+
+        return [
+            'dispatchByItemDate' => $dispatchByItemDate,
+            'dispatchByItemQuantity' => $dispatchByItemQuantity,
+            'donTotalsByItem' => $donTotalsByItem
+        ];
+    }
+
+    private function buildDispatchByItem(array $items_dons, array $besoins, array $donTotalsByItem, callable $sorter): array
+    {
+        $sortedBesoins = $besoins;
+        usort($sortedBesoins, $sorter);
+
         $dispatchByItem = [];
         foreach ($items_dons as $item) {
             $itemId = (string) ($item['id_besoin'] ?? '');
@@ -116,7 +139,7 @@ class DonController
             $remaining = (int) ($donTotalsByItem[$itemId] ?? 0);
             $allocations = [];
 
-            foreach ($besoins as $b) {
+            foreach ($sortedBesoins as $b) {
                 if ((string) ($b['id_besoin_item'] ?? '') !== $itemId) {
                     continue;
                 }
@@ -143,9 +166,6 @@ class DonController
             ];
         }
 
-        return [
-            'dispatchByItem' => $dispatchByItem,
-            'donTotalsByItem' => $donTotalsByItem
-        ];
+        return $dispatchByItem;
     }
 }
