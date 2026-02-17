@@ -66,10 +66,17 @@ return [
 	 *         Database Settings          *
 	 **************************************/
 	'database' => [
+<<<<<<< HEAD
     'host'     => 'localhost',
     'dbname'   => 'db_s2_ETU003945',
     'user'     => 'ETU003945',
     'password' => 'xc885pIw',
+=======
+    'host'     => '127.0.0.1',
+    'dbname'   => 'db_s2_ETU003945',
+    'user'     => 'root',
+    'password' => '',
+>>>>>>> 9fe8c18 (ADX)
     ],
 
 ];
