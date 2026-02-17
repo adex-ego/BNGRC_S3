@@ -14,12 +14,22 @@
         <section class="card shadow-sm">
             <div class="card-body">
                 <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3">
-                    <h2 class="h5 mb-0">Liste des dons</h2>
-                    <span class="badge bg-primary-subtle text-primary">Total: <?php echo htmlspecialchars((string) count($dons ?? [])); ?></span>
+                    <div>
+                        <h2 class="h5 mb-0">Liste des dons</h2>
+                        <span class="badge bg-primary-subtle text-primary">Total: <?php echo htmlspecialchars((string) count($dons ?? [])); ?></span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-dispatch="all-date">
+                            Dispatch par date
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-dispatch="all-quantity">
+                            Dispatch par quantite (du plus petit)
+                        </button>
+                    </div>
                 </div>
 
                 <?php if (!empty($success)): ?>
-                    <div class="alert alert-success">Insertion reussie. ID: <?php echo htmlspecialchars((string) ($insert_id ?? '')); ?></div>
+                    <div class="alert alert-success">Insertion reussie.</div>
                 <?php endif; ?>
 
                 <h3 class="h6 text-uppercase text-primary mb-3">Ajouter un Don</h3>
@@ -67,26 +77,14 @@
                                     <th>Besoin</th>
                                     <th>Type</th>
                                     <th class="text-end">Quantite</th>
-                                    <th class="text-end">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($dons as $d): ?>
-                                    <?php $itemId = (string) ($d['id_besoin_item'] ?? ''); ?>
                                     <tr>
                                         <td><?php echo htmlspecialchars((string) ($d['nom_besoin'] ?? '')); ?></td>
                                         <td><?php echo htmlspecialchars((string) ($d['nom_type'] ?? '')); ?></td>
                                         <td class="text-end"><?php echo htmlspecialchars((string) $d['quantite_don']); ?></td>
-                                        <td class="text-end">
-                                            <button
-                                                type="button"
-                                                class="btn btn-outline-primary btn-sm"
-                                                data-dispatch="type"
-                                                data-type-id="<?php echo htmlspecialchars($itemId); ?>"
-                                            >
-                                                Dispatch
-                                            </button>
-                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -114,7 +112,8 @@
 
     <script src="<?php echo BASE_URL ?>/public/assets/js/bootstrap.bundle.min.js"></script>
     <script>
-        const dispatchData = <?php echo json_encode($dispatchByItem ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+        const dispatchDataDate = <?php echo json_encode($dispatchByItemDate ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+        const dispatchDataQuantity = <?php echo json_encode($dispatchByItemQuantity ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
         const modalEl = document.getElementById('dispatchModal');
         const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
         const modalTitle = modalEl ? modalEl.querySelector('.modal-title') : null;
@@ -129,7 +128,6 @@
                 const statusLabel = item.reste_besoin === 0 ? 'Satisfait' : 'Partiel';
                 return `
                     <tr>
-                        <td>${item.id_besoin}</td>
                         <td>${item.nom_ville || '-'}</td>
                         <td>${item.date_demande || '-'}</td>
                         <td class="text-end">${item.quantite_besoin}</td>
@@ -154,7 +152,6 @@
                             <table class="table table-striped align-middle mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>ID besoin</th>
                                         <th>Ville</th>
                                         <th>Date</th>
                                         <th class="text-end">Besoin</th>
@@ -179,15 +176,14 @@
                     return;
                 }
                 const mode = btn.getAttribute('data-dispatch');
-                if (mode === 'all') {
-                    modalTitle.textContent = 'Simulation de dispatch - Tous les types';
-                    const blocks = Object.values(dispatchData).map(renderTypeBlock).join('');
+                if (mode === 'all-date') {
+                    modalTitle.textContent = 'Simulation de dispatch - Tous les dons (par date)';
+                    const blocks = Object.values(dispatchDataDate).map(renderTypeBlock).join('');
                     modalBody.innerHTML = blocks || '<div class="alert alert-light border mb-0">Aucune donnée disponible.</div>';
-                } else {
-                    const itemId = btn.getAttribute('data-type-id');
-                    const itemData = dispatchData[itemId];
-                    modalTitle.textContent = `Simulation de dispatch - ${itemData ? itemData.item_nom : 'Besoin'}`;
-                    modalBody.innerHTML = renderTypeBlock(itemData);
+                } else if (mode === 'all-quantity') {
+                    modalTitle.textContent = 'Simulation de dispatch - Tous les dons (par quantite)';
+                    const blocks = Object.values(dispatchDataQuantity).map(renderTypeBlock).join('');
+                    modalBody.innerHTML = blocks || '<div class="alert alert-light border mb-0">Aucune donnée disponible.</div>';
                 }
                 modal.show();
             });
