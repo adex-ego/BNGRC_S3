@@ -34,10 +34,8 @@ class AchatController
 
     public function simulate(): void
     {
-        $request = $this->app->request();
-
-        $id_besoin_ville = (int) ($request->data->id_besoin_ville ?? $_POST['id_besoin_ville'] ?? 0);
-        $quantite = (int) ($request->data->quantite ?? $_POST['quantite'] ?? 0);
+        $id_besoin_ville = (int) ($_POST['id_besoin_ville'] ?? $_REQUEST['id_besoin_ville'] ?? 0);
+        $quantite = (int) ($_POST['quantite'] ?? $_REQUEST['quantite'] ?? 0);
 
         if ($id_besoin_ville <= 0 || $quantite <= 0) {
             $this->app->json(['error' => 'Données invalides: id_besoin_ville=' . $id_besoin_ville . ', quantite=' . $quantite], 400);
@@ -92,8 +90,9 @@ class AchatController
 
     public function validate(): void
     {
-        $request = $this->app->request();
-        $id_achat = (int) ($request->data->id_achat ?? $_POST['id_achat'] ?? 0);
+        parse_str(file_get_contents('php://input'), $parsed_data);
+        
+        $id_achat = (int) ($parsed_data['id_achat'] ?? $_POST['id_achat'] ?? 0);
 
         if ($id_achat <= 0) {
             $this->app->json(['error' => 'ID achat invalide'], 400);
@@ -127,8 +126,7 @@ class AchatController
 
     public function deleteSimulation(): void
     {
-        $request = $this->app->request();
-        $id_achat = (int) ($request->data->id_achat ?? $_POST['id_achat'] ?? 0);
+        $id_achat = (int) ($_POST['id_achat'] ?? $_REQUEST['id_achat'] ?? 0);
 
         if ($id_achat <= 0) {
             $this->app->json(['error' => 'ID achat invalide'], 400);

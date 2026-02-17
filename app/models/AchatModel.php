@@ -78,10 +78,11 @@ class AchatModel
     public function getAvailableMoney(): array
     {
         $sql = "SELECT 
-                    id_don,
-                    quantite_don
-                FROM dons_bngrc
-                WHERE id_besoin_item = 3";
+                    d.id_don,
+                    d.quantite_don
+                FROM dons_bngrc d
+                JOIN besoin_bngrc b ON b.id_besoin = d.id_besoin_item
+                WHERE b.id_type = 3";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -91,7 +92,10 @@ class AchatModel
      */
     public function getTotalAvailableMoney(): float
     {
-        $sql = "SELECT SUM(quantite_don) AS total FROM dons_bngrc WHERE id_besoin_item = 3";
+        $sql = "SELECT SUM(d.quantite_don) AS total 
+                FROM dons_bngrc d
+                JOIN besoin_bngrc b ON b.id_besoin = d.id_besoin_item
+                WHERE b.id_type = 3";
         $stmt = $this->db->query($sql);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return (float) ($result['total'] ?? 0);
@@ -310,9 +314,11 @@ class AchatModel
             $this->db->query($sqlValidate);
 
             // Déduire le montant des dons d'argent en évitant les valeurs négatives
-            $sqlGetDons = "SELECT id_don, quantite_don FROM dons_bngrc WHERE id_besoin_item = 3 ORDER BY id_don ASC FOR UPDATE";
+            $sqlGetDons = "SELECT d.id_don, d.quantite_don FROM dons_bngrc d
+                           JOIN besoin_bngrc b ON b.id_besoin = d.id_besoin_item
+                           WHERE b.id_type = 3 ORDER BY d.id_don ASC FOR UPDATE";
             $stmtGetDons = $this->db->query($sqlGetDons);
-            $dons = $stmtGetDons->fetchAll(PDO::FETCH_ASSOC);
+            $dons = $stmtGetDons->fetchAll(\PDO::FETCH_ASSOC);
 
             $resteADeduire = $montant_total;
             $sqlUpdateDon = "UPDATE dons_bngrc SET quantite_don = quantite_don - ? WHERE id_don = ?";
