@@ -23,7 +23,7 @@
                 <?php endif; ?>
 
                 <h3 class="h6 text-uppercase text-primary mb-3">Ajouter un Don</h3>
-                <form method="POST" action="/dons" class="row g-3 mb-4">
+                <form method="POST" action="<?php echo BASE_URL ?>/dons" class="row g-3 mb-4">
                     <div class="col-12 col-md-6">
                         <label class="form-label" for="id_besoin_item">Besoin</label>
                         <select class="form-select" id="id_besoin_item" name="id_besoin_item" required>
@@ -112,7 +112,7 @@
         </div>
     </div>
 
-    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="<?php echo BASE_URL ?>/assets/js/bootstrap.bundle.min.js"></script>
     <script>
         const dispatchData = <?php echo json_encode($dispatchByItem ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
         const modalEl = document.getElementById('dispatchModal');

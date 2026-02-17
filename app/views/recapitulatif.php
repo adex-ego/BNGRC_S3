@@ -46,7 +46,7 @@
 
                 <?php if (empty($achats_valides)): ?>
                     <div class="alert alert-info">
-                        Aucun achat validé pour le moment. <a href="/achats" class="alert-link">Créer une simulation</a>
+                        Aucun achat validé pour le moment. <a href="<?php echo BASE_URL ?>/achats" class="alert-link">Créer une simulation</a>
                     </div>
                 <?php else: ?>
                     <div class="table-responsive">
@@ -84,8 +84,8 @@
                 <?php endif; ?>
 
                 <div class="mt-4">
-                    <a href="/achats" class="btn btn-outline-secondary btn-sm">← Achats</a>
-                    <a href="/home" class="btn btn-outline-secondary btn-sm">← Accueil</a>
+                    <a href="<?php echo BASE_URL ?>/achats" class="btn btn-outline-secondary btn-sm">← Achats</a>
+                    <a href="<?php echo BASE_URL ?>/home" class="btn btn-outline-secondary btn-sm">← Accueil</a>
                 </div>
             </div>
         </section>
@@ -99,7 +99,7 @@
 
         async function actualiserRecap() {
             try {
-                const response = await fetch('/api/recap');
+                const response = await fetch('<?php echo BASE_URL ?>/api/recap');
                 const data = await response.json();
 
                 document.getElementById('stat-total').textContent = parseFloat(data.total_besoins).toFixed(2);

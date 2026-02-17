@@ -20,7 +20,7 @@
 
                 <?php if (empty($achats_simules)): ?>
                     <div class="alert alert-warning">
-                        Aucune simulation en cours. <a href="/achats" class="alert-link">Créer une simulation</a>
+                        Aucune simulation en cours. <a href="<?php echo BASE_URL ?>/achats" class="alert-link">Créer une simulation</a>
                     </div>
                 <?php else: ?>
                     <div class="table-responsive">
@@ -63,7 +63,7 @@
                     </div>
 
                     <div class="mt-3">
-                        <a href="/achats" class="btn btn-outline-secondary btn-sm">← Retour</a>
+                        <a href="<?php echo BASE_URL ?>/achats" class="btn btn-outline-secondary btn-sm">← Retour</a>
                     </div>
                 <?php endif; ?>
             </div>
@@ -71,6 +71,8 @@
     </div>
 
     <script>
+        const BASE_URL = '<?php echo BASE_URL; ?>';
+
         document.querySelectorAll('.btn-valider').forEach(btn => {
             btn.addEventListener('click', async function() {
                 const idAchat = this.dataset.id;
@@ -78,7 +80,7 @@
                 if (!confirm('Valider cet achat ?')) return;
 
                 try {
-                    const response = await fetch('/achats/validate', {
+                    const response = await fetch(BASE_URL + '/achats/validate', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded'
@@ -107,7 +109,7 @@
                 if (!confirm('Supprimer cette simulation ?')) return;
 
                 try {
-                    const response = await fetch('/achats/delete-simulation', {
+                    const response = await fetch(BASE_URL + '/achats/delete-simulation', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded'

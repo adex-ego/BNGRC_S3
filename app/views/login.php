@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <link rel="stylesheet" href="assets/css/login.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL ?>/assets/css/login.css">
 </head>
 <body>
 <div class="container" id="container">
   <div class="form-container sign-up-container">
-    <form action="/register" method="post" id="registerForm" novalidate>
+    <form action="<?php echo BASE_URL ?>/register" method="post" id="registerForm" novalidate>
       <span>Inscrivez-vous pour avoir un compte</span>
       <?php if (!empty($register_error)): ?>
         <p class="error" style="color: #c0392b; margin: 8px 0;">
@@ -29,7 +29,7 @@
     </form>
   </div>
   <div class="form-container sign-in-container">
-    <form action="/login" method="post" id="loginForm" novalidate>
+    <form action="<?php echo BASE_URL ?>/login" method="post" id="loginForm" novalidate>
       <h1>Sign in</h1>
       <span>Connectez-vous pour continuer</span>
       <?php if (!empty($error)): ?>
@@ -60,7 +60,7 @@
   </div>
 </div>
 
-    <script src="assets/js/script.js"></script>
+    <script src="<?php echo BASE_URL ?>/assets/js/script.js"></script>
     
 </body>
 </html>

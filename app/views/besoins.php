@@ -23,7 +23,7 @@
                 <?php endif; ?>
 
                 <h3 class="h6 text-uppercase text-primary mb-3">Ajouter un Besoin</h3>
-                <form method="POST" action="/besoins" class="row g-3 mb-4">
+                <form method="POST" action="<?php echo BASE_URL ?>/besoins" class="row g-3 mb-4">
                     <div class="col-12 col-md-6">
                         <label class="form-label" for="id_besoin_type">Type</label>
                         <select class="form-select" id="id_besoin_type" name="id_besoin_type">

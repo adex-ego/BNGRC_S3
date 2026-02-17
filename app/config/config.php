@@ -46,7 +46,7 @@ if (empty($app) === true) {
 $app->path(__DIR__ . $ds . '..' . $ds . '..');
 
 // Core config variables
-$app->set('flight.base_url', '/',);           // Base URL for your app. Change if app is in a subdirectory (e.g., '/myapp/')
+$app->set('flight.base_url', '/ETU003945/BNGRC_S3');           // Base URL for your app. Change if app is in a subdirectory (e.g., '/myapp/')
 $app->set('flight.case_sensitive', false);    // Set true for case sensitive routes. Default: false
 $app->set('flight.log_errors', true);         // Log errors to file. Recommended: true in production
 $app->set('flight.handle_errors', false);     // Let Tracy handle errors if false. Set true to use Flight's error handler
@@ -66,10 +66,10 @@ return [
 	 *         Database Settings          *
 	 **************************************/
 	'database' => [
-    'host'     => '127.0.0.1',
-    'dbname'   => 'db_s2_ETU003894',
-    'user'     => 'root',
-    'password' => '',
+    'host'     => 'localhost',
+    'dbname'   => 'db_s2_ETU003945',
+    'user'     => 'ETU003945',
+    'password' => 'xc885pIw',
     ],
 
 ];

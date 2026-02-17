@@ -170,7 +170,7 @@
             }
 
             try {
-                const response = await fetch('/achats/simulate', {
+                const response = await fetch('<?php echo BASE_URL ?>/achats/simulate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded'
@@ -184,7 +184,7 @@
                     alert('Erreur : ' + data.error);
                 } else {
                     alert('Simulation créée ! ID : ' + data.id_achat);
-                    window.location.href = '/simulation';
+                    window.location.href = '<?php echo BASE_URL ?>/simulation';
                 }
             } catch (error) {
                 alert('Erreur : ' + error.message);
