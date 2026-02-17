@@ -66,10 +66,10 @@ return [
 	 *         Database Settings          *
 	 **************************************/
 	'database' => [
-    'host'     => '127.0.0.1',
+    'host'     => 'localhost',
     'dbname'   => 'db_s2_ETU003945',
-    'user'     => 'root',
-    'password' => '',
+    'user'     => 'ETU003945',
+    'password' => 'xc885pIw',
     ],
 
 ];
