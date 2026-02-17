@@ -128,7 +128,7 @@ class AchatController
         $achats = $this->achatModel->getAchatsSimules();
         
         $this->app->render('simulation', [
-            'achats' => $achats,
+            'achats_simules' => $achats,
             'montant_dispo' => $this->achatModel->getTotalAvailableMoney()
         ]);
     }

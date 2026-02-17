@@ -79,10 +79,10 @@
                                     <tr data-nom="<?php echo htmlspecialchars((string) $v['nom_ville']); ?>" data-region="<?php echo htmlspecialchars((string) ($v['id_region'] ?? '')); ?>">
                                         <td><?php echo htmlspecialchars((string) $v['nom_ville']); ?></td>
                                         <td class="text-end">
-                                            <a class="btn btn-sm <?php echo htmlspecialchars($besoinClass); ?>" href="/besoins/ville?ville=<?php echo htmlspecialchars((string) $v['id_ville']); ?>">Besoins</a>
+                                            <a class="btn btn-sm <?php echo htmlspecialchars($besoinClass); ?>" href="<?php echo BASE_URL ?>/besoins/ville?ville=<?php echo htmlspecialchars((string) $v['id_ville']); ?>">Besoins</a>
                                         </td>
                                         <td class="text-end">
-                                            <a class="btn btn-sm btn-primary" href="/villes/id?id=<?php echo htmlspecialchars((string) $v['id_ville']); ?>">Gérer</a>
+                                            <a class="btn btn-sm btn-primary" href="<?php echo BASE_URL ?>/villes/id?id=<?php echo htmlspecialchars((string) $v['id_ville']); ?>">Gérer</a>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

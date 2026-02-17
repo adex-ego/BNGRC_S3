@@ -27,8 +27,8 @@
                         <table class="table table-hover table-sm">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
                                     <th>Besoin</th>
+                                    <th>Ville</th>
                                     <th>Qté</th>
                                     <th>Prix/U Ar</th>
                                     <th>Montant HT Ar</th>
@@ -40,8 +40,8 @@
                             <tbody>
                                 <?php foreach ($achats_simules ?? [] as $achat): ?>
                                     <tr>
-                                        <td><small><?php echo $achat['id_achat']; ?></small></td>
                                         <td><?php echo htmlspecialchars($achat['nom_besoin'] ?? ''); ?></td>
+                                        <td><?php echo htmlspecialchars($achat['nom_ville'] ?? ''); ?></td>
                                         <td><?php echo $achat['quantite_achetee']; ?></td>
                                         <td><?php echo number_format($achat['prix_unitaire'], 2); ?></td>
                                         <td><?php echo number_format($achat['quantite_achetee'] * $achat['prix_unitaire'], 2); ?></td>
@@ -62,8 +62,9 @@
                         <?php echo number_format(array_reduce($achats_simules ?? [], function($carry, $item) { return $carry + $item['montant_total']; }, 0), 2); ?> Ar
                     </div>
 
-                    <div class="mt-3">
-                        <a href="<?php echo BASE_URL ?>/achats" class="btn btn-outline-secondary btn-sm">← Retour</a>
+                    <div class="mt-3 d-flex gap-2">
+                        <a href="<?php echo BASE_URL ?>/achats" class="btn btn-outline-secondary btn-sm">← Retour aux achats</a>
+                        <a href="<?php echo BASE_URL ?>/home" class="btn btn-outline-secondary btn-sm">Retour à l'accueil</a>
                     </div>
                 <?php endif; ?>
             </div>
