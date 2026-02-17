@@ -1,8 +1,9 @@
 RewriteEngine On
+RewriteBase /ETU003958/BNGRC_S3/
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php [QSA,L]
-RewriteBase /ETU003945/BNGRC_S3/
 
 # BEGIN GZIP
 <ifmodule mod_deflate.c>
