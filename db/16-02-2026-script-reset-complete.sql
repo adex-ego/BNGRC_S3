@@ -147,12 +147,12 @@ INSERT INTO ville_bngrc (id_region, nom_ville) VALUES
 
 -- Besoins (articles à acheter)
 INSERT INTO besoin_bngrc (id_type, nom_besoin, prix_besoin) VALUES
-(1, 'Riz', 5.00),
-(1, 'Haricots', 3.50),
-(1, 'Sucre', 2.00),
-(2, 'Ciment', 15.00),
-(2, 'Tôles', 20.00),
-(2, 'Bois', 8.00);
+(1, 'Riz', 25000.00),
+(1, 'Haricots', 17500.00),
+(1, 'Sucre', 10000.00),
+(2, 'Ciment', 75000.00),
+(2, 'Tôles', 100000.00),
+(2, 'Bois', 40000.00);
 
 -- Besoins par ville (quantités demandées)
 INSERT INTO besoin_ville_bngrc (id_besoin_item, quantite_besoin, id_ville, date_demande) VALUES
@@ -163,11 +163,11 @@ INSERT INTO besoin_ville_bngrc (id_besoin_item, quantite_besoin, id_ville, date_
 (5, 100, 5, '2026-02-14'),  -- 100 tôles à Antsiranana
 (6, 50, 11, '2026-02-15');  -- 50 m³ de Bois à Toliara
 
--- Dons en Argent (quantités en euros)
+-- Dons en Argent (quantités en MGA)
 INSERT INTO dons_bngrc (id_besoin_item, quantite_don) VALUES
-(3, 1000),  -- 1000€ en argent (type Argent)
-(3, 500),   -- 500€ en argent
-(3, 750);   -- 750€ en argent
+(3, 5000000),  -- 5 000 000 MGA en argent (type Argent)
+(3, 2500000),  -- 2 500 000 MGA en argent
+(3, 3750000);  -- 3 750 000 MGA en argent
 
 -- Utilisateurs de test
 INSERT INTO user_takalo (username, email, hashedpassword) VALUES
@@ -176,8 +176,8 @@ INSERT INTO user_takalo (username, email, hashedpassword) VALUES
 
 -- Prix unitaires des types
 INSERT INTO besoin_prix_bngrc (id_type, prix_unitaire) VALUES
-(1, 5.00),     -- En Nature: 5€ l'unité
-(2, 15.00);    -- Matériaux: 15€ l'unité
+(1, 25000.00),     -- En Nature: 25 000 MGA l'unité
+(2, 75000.00);     -- Matériaux: 75 000 MGA l'unité
 
 -- Configuration des frais d'achat
 INSERT INTO config_bngrc (frais_achat_percent, nom_config) VALUES
