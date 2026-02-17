@@ -117,6 +117,14 @@ class DonController
         $dispatchModel = new DispatchModel($db);
         $besoinModel = new \app\models\BesoinModel($db);
 
+        // Vérifier s'il existe déjà un dispatch actif
+        $latestDispatch = $dispatchModel->getLatestDispatch();
+        if ($latestDispatch !== null) {
+            // Un dispatch existe déjà, redirection avec erreur
+            Flight::redirect('/dons?dispatch_error=1');
+            return;
+        }
+
         $items_dons = $donModel->getAllBesoins();
         $besoins = $besoinModel->getBesoin();
         $donTotalsRaw = $donModel->getDonTotals();
@@ -156,7 +164,6 @@ class DonController
 
         $db->beginTransaction();
         try {
-            $dispatchModel->resetAll();
             $dispatchId = $dispatchModel->createDispatch($mode);
 
             if (!$dispatchId) {
@@ -180,6 +187,9 @@ class DonController
                     $dispatchModel->insertDispatchDetail($dispatchId, $allocation);
                 }
             }
+
+            // Mettre à jour les quantités de besoins en base après le dispatch
+            $dispatchModel->updateBesoinQuantitiesFromDispatch($dispatchId);
 
             $db->commit();
         } catch (\Throwable $e) {

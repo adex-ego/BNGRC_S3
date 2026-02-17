@@ -15,6 +15,22 @@ class DispatchModel
 
     public function resetAll(): void
     {
+        // Récupérer le dernier dispatch avec les données sauvegardées
+        $latestDispatch = $this->getLatestDispatch();
+        if ($latestDispatch) {
+            $dispatchId = (int) $latestDispatch['id_dispatch'];
+            
+            // Restaurer les quantités de besoins à partir des données du dispatch
+            $details = $this->getDispatchDetails($dispatchId);
+            foreach ($details as $detail) {
+                $besoinId = (int) $detail['id_besoin'];
+                $quantiteBesoin = (int) $detail['quantite_besoin'];
+                
+                $stmt = $this->db->prepare('UPDATE besoin_ville_bngrc SET quantite_besoin = ? WHERE id_besoin = ?');
+                $stmt->execute([ $quantiteBesoin, $besoinId ]);
+            }
+        }
+        
         $this->db->exec('DELETE FROM dispatch_detail_bngrc');
         $this->db->exec('DELETE FROM dispatch_item_bngrc');
         $this->db->exec('DELETE FROM dispatch_bngrc');
@@ -46,6 +62,18 @@ class DispatchModel
             $detail['id_ville'],
             $detail['date_demande']
         ]);
+    }
+
+    public function updateBesoinQuantitiesFromDispatch(int $dispatchId): void
+    {
+        $details = $this->getDispatchDetails($dispatchId);
+        foreach ($details as $detail) {
+            $besoinId = (int) $detail['id_besoin'];
+            $resteQuantite = (int) $detail['reste_besoin'];
+            
+            $stmt = $this->db->prepare('UPDATE besoin_ville_bngrc SET quantite_besoin = ? WHERE id_besoin = ?');
+            $stmt->execute([ $resteQuantite, $besoinId ]);
+        }
     }
 
     public function getLatestDispatch(): ?array

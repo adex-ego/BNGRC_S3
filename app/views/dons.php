@@ -21,24 +21,24 @@
                     <div class="d-flex flex-wrap gap-2">
                         <form method="POST" action="<?php echo BASE_URL ?>/dons/dispatch" class="d-inline">
                             <input type="hidden" name="mode" value="date">
-                            <button type="submit" class="btn btn-outline-primary btn-sm">
+                            <button type="submit" class="btn btn-outline-primary btn-sm" <?php echo !empty($dispatchMode) ? 'disabled' : ''; ?>>
                                 Dispatch par date
                             </button>
                         </form>
                         <form method="POST" action="<?php echo BASE_URL ?>/dons/dispatch" class="d-inline">
                             <input type="hidden" name="mode" value="quantity">
-                            <button type="submit" class="btn btn-outline-primary btn-sm">
+                            <button type="submit" class="btn btn-outline-primary btn-sm" <?php echo !empty($dispatchMode) ? 'disabled' : ''; ?>>
                                 Dispatch par quantite
                             </button>
                         </form>
                         <form method="POST" action="<?php echo BASE_URL ?>/dons/dispatch" class="d-inline">
                             <input type="hidden" name="mode" value="proportion">
-                            <button type="submit" class="btn btn-outline-success btn-sm">
+                            <button type="submit" class="btn btn-outline-success btn-sm" <?php echo !empty($dispatchMode) ? 'disabled' : ''; ?>>
                                 Dispatch proportionnelle
                             </button>
                         </form>
                         <form method="POST" action="<?php echo BASE_URL ?>/dons/dispatch/reset" class="d-inline">
-                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <button type="submit" class="btn btn-outline-danger btn-sm" <?php echo empty($dispatchMode) ? 'disabled' : ''; ?>>
                                 Reset dispatch
                             </button>
                         </form>
@@ -53,11 +53,16 @@
                 <?php endif; ?>
 
                 <?php if (!empty($dispatchTriggered)): ?>
-                    <div class="alert alert-success">Dispatch enregistre en base.</div>
+                    <div class="alert alert-success">Dispatch enregistre en base. Les quantités de besoins ont été mises à jour.</div>
                 <?php endif; ?>
 
                 <?php if (!empty($dispatchError)): ?>
-                    <div class="alert alert-danger">Erreur lors du dispatch.</div>
+                    <div class="alert alert-danger">
+                        Erreur lors du dispatch. 
+                        <?php if (!empty($dispatchRequestedMode)): ?>
+                            Un dispatch est déjà actif - cliquez sur "Reset dispatch" pour réinitialiser et recommencer.
+                        <?php endif; ?>
+                    </div>
                 <?php endif; ?>
 
                 <?php if (!empty($resetSuccess)): ?>
