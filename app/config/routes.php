@@ -58,6 +58,7 @@ $router->group('', function(Router $router) use ($app) {
         $router->post('/achats/validate', [ AchatController::class, 'validate' ]);
         $router->get('/simulation', [ AchatController::class, 'showSimulation' ]);
         $router->post('/achats/delete-simulation', [ AchatController::class, 'deleteSimulation' ]);
+        $router->post('/achats/commit-all', [ AchatController::class, 'commitAll' ]);
         $router->get('/recapitulatif', [ AchatController::class, 'showRecap' ]);
         $router->get('/api/recap', [ AchatController::class, 'recap' ]);
     }, [ AuthMiddleware::class ]);

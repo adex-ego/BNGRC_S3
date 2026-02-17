@@ -18,6 +18,19 @@
                     <span class="badge bg-info-subtle text-info">Montant: <?php echo number_format($montant_dispo ?? 0, 2); ?> Ar</span>
                 </div>
 
+                <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        Tous les achats ont été validés et les dons d'argent ont été déduits !
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php endif; ?>
+                <?php if (isset($_GET['error']) && $_GET['error'] == 1): ?>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        Erreur lors de la validation des achats
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php endif; ?>
+
                 <?php if (empty($achats_simules)): ?>
                     <div class="alert alert-warning">
                         Aucune simulation en cours. <a href="<?php echo BASE_URL ?>/achats" class="alert-link">Créer une simulation</a>
@@ -63,6 +76,9 @@
                     </div>
 
                     <div class="mt-3 d-flex gap-2">
+                        <form method="POST" action="<?php echo BASE_URL ?>/achats/commit-all" style="display: inline;">
+                            <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Valider TOUS les achats et déduire des dons d\'argent ?')">Commit tous les achats</button>
+                        </form>
                         <a href="<?php echo BASE_URL ?>/achats" class="btn btn-outline-secondary btn-sm">← Retour aux achats</a>
                         <a href="<?php echo BASE_URL ?>/home" class="btn btn-outline-secondary btn-sm">Retour à l'accueil</a>
                     </div>
