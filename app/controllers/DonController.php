@@ -121,9 +121,12 @@ class DonController
         $latestDispatch = $dispatchModel->getLatestDispatch();
         if ($latestDispatch !== null) {
             // Un dispatch existe déjà, redirection avec erreur
+            error_log('Dispatch actif détecté: ' . json_encode($latestDispatch));
             Flight::redirect('/dons?dispatch_error=1');
             return;
         }
+
+        error_log('Mode dispatch: ' . $mode);
 
         $items_dons = $donModel->getAllBesoins();
         $besoins = $besoinModel->getBesoin();
@@ -165,6 +168,7 @@ class DonController
         $db->beginTransaction();
         try {
             $dispatchId = $dispatchModel->createDispatch($mode);
+            error_log('Dispatch créé avec ID: ' . $dispatchId);
 
             if (!$dispatchId) {
                 throw new \Exception('Impossible de créer le dispatch');
@@ -190,11 +194,13 @@ class DonController
 
             // Mettre à jour les quantités de besoins en base après le dispatch
             $dispatchModel->updateBesoinQuantitiesFromDispatch($dispatchId);
+            error_log('Quantités de besoins mises à jour');
 
             $db->commit();
+            error_log('Dispatch validé et sauvegardé');
         } catch (\Throwable $e) {
             $db->rollBack();
-            error_log('Dispatch error: ' . $e->getMessage());
+            error_log('Dispatch error: ' . $e->getMessage() . ' - ' . $e->getFile() . ':' . $e->getLine());
             Flight::redirect('/dons?dispatch_error=1');
             return;
         }
