@@ -38,7 +38,7 @@ class AchatController
         $quantite = (int) ($_POST['quantite'] ?? $_REQUEST['quantite'] ?? 0);
 
         if ($id_besoin_ville <= 0 || $quantite <= 0) {
-            $this->app->json(['error' => 'Données invalides: id_besoin_ville=' . $id_besoin_ville . ', quantite=' . $quantite], 400);
+            $this->app->json(['error' => 'Données invalides: id_besoin_ville=' . $id_besoin_ville . ', quantite=' . $quantite]);
             return;
         }
 
@@ -60,7 +60,7 @@ class AchatController
             $this->app->json([
                 'error' => 'Quantité supérieure au besoin restant',
                 'available' => $quantite_dispo
-            ], 400);
+            ]);
             return;
         }
         $frais_percent = $this->achatModel->getFraisAchat();
@@ -74,7 +74,7 @@ class AchatController
                 'error' => 'Montant insuffisant',
                 'needed' => $montant_total,
                 'available' => $montant_dispo
-            ], 400);
+            ]);
             return;
         }
 
