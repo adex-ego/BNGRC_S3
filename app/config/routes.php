@@ -52,6 +52,8 @@ $router->group('', function(Router $router) use ($app) {
         $router->get('/dons', [ DonController::class, 'index' ]);
         $router->get('/dons/id', [ DonController::class, 'getById' ]);
         $router->post('/dons', [ DonController::class, 'create' ]);
+        $router->post('/dons/dispatch', [ DonController::class, 'dispatch' ]);
+        $router->post('/dons/dispatch/reset', [ DonController::class, 'resetDispatch' ]);
 
         $router->get('/achats', [ AchatController::class, 'index' ]);
         $router->post('/achats/simulate', [ AchatController::class, 'simulate' ]);

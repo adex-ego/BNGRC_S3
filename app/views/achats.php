@@ -14,66 +14,74 @@
         <section class="card shadow-sm">
             <div class="card-body">
                 <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3">
-                    <h2 class="h5 mb-0">Simulateur d'Achats</h2>
+                    <h2 class="h5 mb-0">Achats</h2>
                     <span class="badge bg-success-subtle text-success">Montant: <?php echo number_format($montant_disponible ?? 0, 2); ?> Ar</span>
                 </div>
 
                 <h5>Besoins à satisfaire</h5>
 
-                <div class="row mb-4">
-                    <div class="col-12 col-md-4">
-                        <label class="form-label" for="id_ville">Filtrer par ville</label>
-                        <select class="form-select" id="id_ville">
-                            <option value="">-- Toutes les villes --</option>
-                            <?php foreach ($villes ?? [] as $ville): ?>
-                                <option value="<?php echo $ville['id_ville']; ?>">
-                                    <?php echo htmlspecialchars($ville['nom_ville']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                <?php if (empty($besoins)): ?>
+                    <div class="alert alert-success">Aucun besoin à satisfaire pour le moment.</div>
+                <?php else: ?>
+                    <div class="row mb-4">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" for="id_ville">Filtrer par ville</label>
+                            <select class="form-select" id="id_ville">
+                                <option value="">-- Toutes les villes --</option>
+                                <?php foreach ($villes ?? [] as $ville): ?>
+                                    <option value="<?php echo $ville['id_ville']; ?>">
+                                        <?php echo htmlspecialchars($ville['nom_ville']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                     </div>
-                </div>
 
-                <div class="table-responsive">
-                    <table class="table table-hover table-sm">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Besoin</th>
-                                <th>Type</th>
-                                <th>Quantité</th>
-                                <th>Prix/U Ar</th>
-                                <th>Total Ar</th>
-                                <th>Ville</th>
-                                <th>Date</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($besoins ?? [] as $besoin): ?>
-                                <tr class="besoin-row" data-id-besoin="<?php echo $besoin['id_besoin']; ?>" data-id-ville="<?php echo $besoin['id_ville']; ?>">
-                                    <td><?php echo htmlspecialchars($besoin['nom_besoin']); ?></td>
-                                    <td><small><?php echo htmlspecialchars($besoin['nom_type']); ?></small></td>
-                                    <td><?php echo $besoin['quantite_besoin']; ?></td>
-                                    <td><?php echo number_format($besoin['prix_besoin'], 2); ?></td>
-                                    <td><?php echo number_format($besoin['montant_total'], 2); ?></td>
-                                    <td><?php echo htmlspecialchars($besoin['nom_ville']); ?></td>
-                                    <td><small><?php echo $besoin['date_demande']; ?></small></td>
-                                    <td>
-                                        <button type="button" class="btn btn-sm btn-outline-success btn-acheter" 
-                                                data-id="<?php echo $besoin['id_besoin']; ?>" 
-                                                data-prix="<?php echo $besoin['prix_besoin']; ?>">
-                                            Acheter
-                                        </button>
-                                    </td>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Besoin</th>
+                                    <th>Type</th>
+                                    <th>Quantité</th>
+                                    <th>Prix/U Ar</th>
+                                    <th>Total Ar</th>
+                                    <th>Ville</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
                                 </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($besoins ?? [] as $besoin): ?>
+                                    <tr class="besoin-row" data-id-besoin="<?php echo $besoin['id_besoin']; ?>" data-id-ville="<?php echo $besoin['id_ville']; ?>">
+                                        <td><?php echo htmlspecialchars($besoin['nom_besoin']); ?></td>
+                                        <td><small><?php echo htmlspecialchars($besoin['nom_type']); ?></small></td>
+                                        <td><?php echo $besoin['quantite_besoin']; ?></td>
+                                        <td><?php echo number_format($besoin['prix_besoin'], 2); ?></td>
+                                        <td><?php echo number_format($besoin['montant_total'], 2); ?></td>
+                                        <td><?php echo htmlspecialchars($besoin['nom_ville']); ?></td>
+                                        <td><small><?php echo $besoin['date_demande']; ?></small></td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-success btn-acheter" 
+                                                    data-id="<?php echo $besoin['id_besoin']; ?>" 
+                                                    data-prix="<?php echo $besoin['prix_besoin']; ?>">
+                                                Acheter
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
 
                 <hr class="my-4">
 
                 <h5>Formulaire d'Achat</h5>
+
+                <div id="achatSuccess" class="alert alert-success d-none" role="alert">
+                    Achat ajouté. <a href="<?php echo BASE_URL ?>/simulation" class="alert-link">Aller payer</a>
+                </div>
 
                 <form id="formAchat" class="row g-3">
                     <div class="col-12 col-md-6">
@@ -102,7 +110,7 @@
                     </div>
 
                     <div class="col-12">
-                        <button type="submit" class="btn btn-primary">Simuler l'Achat</button>
+                            <button type="submit" class="btn btn-primary">Ajouter l'Achat</button>
                     </div>
                 </form>
 
@@ -111,8 +119,88 @@
     </div>
 
     <script>
-        window.BASE_URL = '<?php echo BASE_URL ?>';
+        let selectedBesoin = null;
+
+        // Filtre par ville
+        document.getElementById('id_ville').addEventListener('change', function(e) {
+            const idVille = e.target.value;
+            const rows = document.querySelectorAll('.besoin-row');
+            
+            rows.forEach(row => {
+                if (!idVille || row.dataset.idVille == idVille) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Sélectionner un besoin à acheter
+        document.querySelectorAll('.btn-acheter').forEach(btn => {
+            btn.addEventListener('click', function() {
+                selectedBesoin = {
+                    id: this.dataset.id,
+                    prix: parseFloat(this.dataset.prix)
+                };
+                document.getElementById('previewAchat').style.display = 'block';
+                document.getElementById('quantite_achetee').focus();
+                document.getElementById('quantite_achetee').value = '';
+            });
+        });
+
+        // Calculer le montant preview
+        document.getElementById('quantite_achetee').addEventListener('input', function() {
+            if (!selectedBesoin) return;
+            
+            const quantite = parseFloat(this.value) || 0;
+            const montantHT = quantite * selectedBesoin.prix;
+            const frais = montantHT * 0.10;
+            const total = montantHT + frais;
+
+            document.getElementById('montantHT').textContent = montantHT.toFixed(2);
+            document.getElementById('montantFrais').textContent = frais.toFixed(2);
+            document.getElementById('montantTotal').textContent = total.toFixed(2);
+        });
+
+        // Soumettre la simulation
+        document.getElementById('formAchat').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            if (!selectedBesoin) {
+                alert('Sélectionnez un besoin');
+                return;
+            }
+
+            const quantite = parseFloat(document.getElementById('quantite_achetee').value);
+            if (!quantite || quantite <= 0) {
+                alert('Quantité invalide');
+                return;
+            }
+
+            try {
+                const response = await fetch('<?php echo BASE_URL ?>/achats/simulate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `id_besoin_ville=${selectedBesoin.id}&quantite=${quantite}`
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    alert('Erreur : ' + data.error);
+                } else {
+                    const successEl = document.getElementById('achatSuccess');
+                    if (successEl) {
+                        successEl.classList.remove('d-none');
+                    }
+                    document.getElementById('quantite_achetee').value = '';
+                }
+            } catch (error) {
+                alert('Erreur : ' + error.message);
+            }
+        });
     </script>
-    <script src="<?php echo BASE_URL ?>/public/assets/js/scriptAchat.js"></script>
 </body>
 </html>

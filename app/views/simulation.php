@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="utf-8">
-    <title>BNGRC - Simulation</title>
+    <title>BNGRC - Achats</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="<?php echo BASE_URL ?>/public/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="<?php echo BASE_URL ?>/public/assets/css/style.css">
@@ -14,7 +14,7 @@
         <section class="card shadow-sm">
             <div class="card-body">
                 <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3">
-                    <h2 class="h5 mb-0">Simulation d'Achats</h2>
+                    <h2 class="h5 mb-0">Achats</h2>
                     <span class="badge bg-info-subtle text-info">Montant: <?php echo number_format($montant_dispo ?? 0, 2); ?> Ar</span>
                 </div>
 
@@ -33,7 +33,7 @@
 
                 <?php if (empty($achats_simules)): ?>
                     <div class="alert alert-warning">
-                        Aucune simulation en cours. <a href="<?php echo BASE_URL ?>/achats" class="alert-link">Créer une simulation</a>
+                        Aucun achat en cours. <a href="<?php echo BASE_URL ?>/achats" class="alert-link">Ajouter un achat</a>
                     </div>
                 <?php else: ?>
                     <div class="table-responsive">
@@ -61,7 +61,7 @@
                                         <td><?php echo $achat['frais_achat_percent'] ?? 0; ?>%</td>
                                         <td><strong><?php echo number_format($achat['montant_total'], 2); ?></strong></td>
                                         <td>
-                                            <button class="btn btn-sm btn-success btn-valider" data-id="<?php echo $achat['id_achat']; ?>">✓</button>
+                                            <button class="btn btn-sm btn-success btn-valider" data-id="<?php echo $achat['id_achat']; ?>" title="Valider">✓</button>
                                             <button class="btn btn-sm btn-danger btn-supprimer" data-id="<?php echo $achat['id_achat']; ?>">✕</button>
                                         </td>
                                     </tr>
@@ -71,13 +71,13 @@
                     </div>
 
                     <div class="alert alert-light border">
-                        <strong>Total des simulations :</strong> 
+                        <strong>Total des achats :</strong> 
                         <?php echo number_format(array_reduce($achats_simules ?? [], function($carry, $item) { return $carry + $item['montant_total']; }, 0), 2); ?> Ar
                     </div>
 
                     <div class="mt-3 d-flex gap-2">
                         <form method="POST" action="<?php echo BASE_URL ?>/achats/commit-all" style="display: inline;">
-                            <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Valider TOUS les achats et déduire des dons d\'argent ?')">Commit tous les achats</button>
+                            <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Valider TOUS les achats et déduire des dons d\'argent ?')">Valider tous les achats</button>
                         </form>
                         <a href="<?php echo BASE_URL ?>/achats" class="btn btn-outline-secondary btn-sm">← Retour aux achats</a>
                         <a href="<?php echo BASE_URL ?>/home" class="btn btn-outline-secondary btn-sm">Retour à l'accueil</a>

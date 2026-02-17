@@ -19,17 +19,47 @@
                         <span class="badge bg-primary-subtle text-primary">Total: <?php echo htmlspecialchars((string) count($dons ?? [])); ?></span>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm" data-dispatch="all-date">
-                            Dispatch par date
-                        </button>
-                        <button type="button" class="btn btn-outline-primary btn-sm" data-dispatch="all-quantity">
-                            Dispatch par quantite (du plus petit)
+                        <form method="POST" action="<?php echo BASE_URL ?>/dons/dispatch" class="d-inline">
+                            <input type="hidden" name="mode" value="date">
+                            <button type="submit" class="btn btn-outline-primary btn-sm">
+                                Dispatch par date
+                            </button>
+                        </form>
+                        <form method="POST" action="<?php echo BASE_URL ?>/dons/dispatch" class="d-inline">
+                            <input type="hidden" name="mode" value="quantity">
+                            <button type="submit" class="btn btn-outline-primary btn-sm">
+                                Dispatch par quantite
+                            </button>
+                        </form>
+                        <form method="POST" action="<?php echo BASE_URL ?>/dons/dispatch/reset" class="d-inline">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                Reset dispatch
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="openDispatchBtn" <?php echo empty($dispatchByItem) ? 'disabled' : ''; ?>>
+                            Voir le dernier dispatch
                         </button>
                     </div>
                 </div>
 
                 <?php if (!empty($success)): ?>
                     <div class="alert alert-success">Insertion reussie.</div>
+                <?php endif; ?>
+
+                <?php if (!empty($dispatchTriggered)): ?>
+                    <div class="alert alert-success">Dispatch enregistre en base.</div>
+                <?php endif; ?>
+
+                <?php if (!empty($dispatchError)): ?>
+                    <div class="alert alert-danger">Erreur lors du dispatch.</div>
+                <?php endif; ?>
+
+                <?php if (!empty($resetSuccess)): ?>
+                    <div class="alert alert-warning">Dispatch reinitialise. Les dons sont revenus a l'etat precedent.</div>
+                <?php endif; ?>
+
+                <?php if (!empty($resetError)): ?>
+                    <div class="alert alert-danger">Erreur lors de la reinitialisation du dispatch.</div>
                 <?php endif; ?>
 
                 <h3 class="h6 text-uppercase text-primary mb-3">Ajouter un Don</h3>
@@ -99,7 +129,7 @@
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Simulation de dispatch</h5>
+                    <h5 class="modal-title">Dispatch en base</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                 </div>
                 <div class="modal-body"></div>
@@ -112,10 +142,108 @@
 
     <script src="<?php echo BASE_URL ?>/public/assets/js/bootstrap.bundle.min.js"></script>
     <script>
-        window.BASE_URL = '<?php echo BASE_URL ?>';
-        window.dispatchByItemDate = <?php echo json_encode($dispatchByItemDate ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
-        window.dispatchByItemQuantity = <?php echo json_encode($dispatchByItemQuantity ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+        const dispatchData = <?php echo json_encode($dispatchByItem ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+        const dispatchMode = <?php echo json_encode($dispatchMode ?? null, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+        const dispatchRequestedMode = <?php echo json_encode($dispatchRequestedMode ?? null, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+        const shouldAutoOpen = <?php echo json_encode(!empty($dispatchTriggered), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+        const shouldCleanParams = <?php echo json_encode(!empty($dispatchTriggered) || !empty($resetSuccess) || !empty($success) || !empty($dispatchError) || !empty($resetError), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+        const modalEl = document.getElementById('dispatchModal');
+        const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
+        const modalTitle = modalEl ? modalEl.querySelector('.modal-title') : null;
+        const modalBody = modalEl ? modalEl.querySelector('.modal-body') : null;
+        const openDispatchBtn = document.getElementById('openDispatchBtn');
+
+        const renderTypeBlock = (itemData) => {
+            if (!itemData) {
+                return '<div class="alert alert-light border mb-0">Type introuvable.</div>';
+            }
+            const rows = (itemData.allocations || []).map((item) => {
+                const statusClass = item.reste_besoin === 0 ? 'bg-success' : 'bg-warning text-dark';
+                const statusLabel = item.reste_besoin === 0 ? 'Satisfait' : 'Partiel';
+                return `
+                    <tr>
+                        <td>${item.nom_ville || '-'}</td>
+                        <td>${item.date_demande || '-'}</td>
+                        <td class="text-end">${item.quantite_besoin}</td>
+                        <td class="text-end">${item.quantite_dispatched}</td>
+                        <td class="text-end">${item.reste_besoin}</td>
+                        <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+                    </tr>
+                `;
+            }).join('');
+
+            return `
+                <div class="mb-4">
+                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-2">
+                        <div>
+                            <h6 class="mb-0">${itemData.item_nom}</h6>
+                            <small class="text-muted">Type: ${itemData.type_nom || '-'}</small>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary">Total dons: ${itemData.total_don}</span>
+                    </div>
+                    ${rows ? `
+                        <div class="table-responsive table-scroll">
+                            <table class="table table-striped align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Ville</th>
+                                        <th>Date</th>
+                                        <th class="text-end">Besoin</th>
+                                        <th class="text-end">Dispatch</th>
+                                        <th class="text-end">Reste</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${rows}
+                                </tbody>
+                            </table>
+                        </div>
+                    ` : '<div class="alert alert-light border mb-0">Aucun besoin pour ce type.</div>'}
+                </div>
+            `;
+        };
+
+        const openDispatchModal = () => {
+            if (!modal || !modalTitle || !modalBody) {
+                return;
+            }
+            const effectiveMode = dispatchMode || dispatchRequestedMode;
+            if (effectiveMode === 'date') {
+                modalTitle.textContent = 'Dispatch en base - Tous les dons (par date)';
+            } else if (effectiveMode === 'quantity') {
+                modalTitle.textContent = 'Dispatch en base - Tous les dons (par quantite)';
+            } else {
+                modalTitle.textContent = 'Dispatch en base - Tous les dons';
+            }
+            const blocks = Object.values(dispatchData || {}).map(renderTypeBlock).join('');
+            modalBody.innerHTML = blocks || '<div class="alert alert-light border mb-0">Aucune donnée disponible.</div>';
+            modal.show();
+        };
+
+        if (shouldAutoOpen) {
+            openDispatchModal();
+        }
+
+        if (openDispatchBtn) {
+            openDispatchBtn.addEventListener('click', () => {
+                openDispatchModal();
+            });
+        }
+
+        if (shouldCleanParams && window.history.replaceState) {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('dispatch');
+            url.searchParams.delete('mode');
+            url.searchParams.delete('reset');
+            url.searchParams.delete('dispatch_error');
+            url.searchParams.delete('reset_error');
+            url.searchParams.delete('success');
+            url.searchParams.delete('insert_id');
+            const query = url.searchParams.toString();
+            const nextUrl = url.pathname + (query ? `?${query}` : '');
+            window.history.replaceState({}, document.title, nextUrl);
+        }
     </script>
-    <script src="<?php echo BASE_URL ?>/public/assets/js/scriptDons.js"></script>
 </body>
 </html>

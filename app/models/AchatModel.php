@@ -36,7 +36,7 @@ class AchatModel
                 JOIN besoin_type_bngrc t ON t.id_type = b.id_type
                 LEFT JOIN ville_bngrc v ON v.id_ville = bv.id_ville
                 LEFT JOIN region_bngrc r ON r.id_region = v.id_region
-                WHERE t.id_type IN (1, 2)
+                WHERE t.id_type IN (1, 2) AND bv.quantite_besoin > 0
                 ORDER BY bv.date_demande DESC";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -65,7 +65,7 @@ class AchatModel
                 JOIN besoin_type_bngrc t ON t.id_type = b.id_type
                 LEFT JOIN ville_bngrc v ON v.id_ville = bv.id_ville
                 LEFT JOIN region_bngrc r ON r.id_region = v.id_region
-                WHERE t.id_type IN (1, 2) AND bv.id_ville = ?
+                WHERE t.id_type IN (1, 2) AND bv.id_ville = ? AND bv.quantite_besoin > 0
                 ORDER BY bv.date_demande DESC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$id_ville]);
@@ -285,21 +285,56 @@ class AchatModel
             $stmtGetAchats = $this->db->query($sqlGetAchats);
             $achats = $stmtGetAchats->fetchAll(PDO::FETCH_ASSOC);
 
-            // Réduire la quantité des besoins pour chaque achat
+            // Réduire la quantité des besoins pour chaque achat (avec contrôle)
+            $sqlCheckBesoin = "SELECT quantite_besoin FROM besoin_ville_bngrc WHERE id_besoin = ? FOR UPDATE";
+            $stmtCheckBesoin = $this->db->prepare($sqlCheckBesoin);
+            $sqlReduceBesoin = "UPDATE besoin_ville_bngrc SET quantite_besoin = quantite_besoin - ? WHERE id_besoin = ?";
+            $stmtReduceBesoin = $this->db->prepare($sqlReduceBesoin);
+
             foreach ($achats as $achat) {
-                $sqlReduceBesoin = "UPDATE besoin_ville_bngrc SET quantite_besoin = quantite_besoin - ? WHERE id_besoin = ?";
-                $stmtReduceBesoin = $this->db->prepare($sqlReduceBesoin);
-                $stmtReduceBesoin->execute([$achat['quantite_achetee'], $achat['id_besoin_ville']]);
+                $stmtCheckBesoin->execute([ $achat['id_besoin_ville'] ]);
+                $row = $stmtCheckBesoin->fetch(PDO::FETCH_ASSOC);
+                $restant = (int) ($row['quantite_besoin'] ?? 0);
+                $quantiteAchetee = (int) ($achat['quantite_achetee'] ?? 0);
+
+                if ($quantiteAchetee > $restant) {
+                    $this->db->rollBack();
+                    return false;
+                }
+
+                $stmtReduceBesoin->execute([ $quantiteAchetee, $achat['id_besoin_ville'] ]);
             }
 
             // Valider tous les achats simulés en passant leur statut à 'valide'
             $sqlValidate = "UPDATE achats_bngrc SET statut = 'valide', date_achat = NOW() WHERE statut = 'simule'";
             $this->db->query($sqlValidate);
 
-            // Déduire le montant des dons d'argent
-            $sqlDeduct = "UPDATE dons_bngrc SET quantite_don = quantite_don - ? WHERE id_besoin_item = 3";
-            $stmtDeduct = $this->db->prepare($sqlDeduct);
-            $stmtDeduct->execute([$montant_total]);
+            // Déduire le montant des dons d'argent en évitant les valeurs négatives
+            $sqlGetDons = "SELECT id_don, quantite_don FROM dons_bngrc WHERE id_besoin_item = 3 ORDER BY id_don ASC FOR UPDATE";
+            $stmtGetDons = $this->db->query($sqlGetDons);
+            $dons = $stmtGetDons->fetchAll(PDO::FETCH_ASSOC);
+
+            $resteADeduire = $montant_total;
+            $sqlUpdateDon = "UPDATE dons_bngrc SET quantite_don = quantite_don - ? WHERE id_don = ?";
+            $stmtUpdateDon = $this->db->prepare($sqlUpdateDon);
+
+            foreach ($dons as $don) {
+                if ($resteADeduire <= 0) {
+                    break;
+                }
+                $disponible = (float) ($don['quantite_don'] ?? 0);
+                if ($disponible <= 0) {
+                    continue;
+                }
+                $deduction = $resteADeduire > $disponible ? $disponible : $resteADeduire;
+                $stmtUpdateDon->execute([ $deduction, $don['id_don'] ]);
+                $resteADeduire -= $deduction;
+            }
+
+            if ($resteADeduire > 0) {
+                $this->db->rollBack();
+                return false;
+            }
 
             // Valider la transaction
             $this->db->commit();

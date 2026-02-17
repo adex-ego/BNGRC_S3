@@ -105,8 +105,9 @@ class BesoinModel
     public function getBesoinCountsByVille(): array
     {
         $sql = "SELECT id_ville, COUNT(*) AS total_besoins
-                FROM besoin_ville_bngrc
-                GROUP BY id_ville";
+            FROM besoin_ville_bngrc
+            WHERE quantite_besoin > 0
+            GROUP BY id_ville";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
